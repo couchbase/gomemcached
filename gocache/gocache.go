@@ -7,8 +7,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/couchbase/gomemcached"
-	"github.com/couchbase/gomemcached/server"
+	"github.com/VerveWireless/gomemcached"
+	"github.com/VerveWireless/gomemcached/server"
 )
 
 var port = flag.Int("port", 11212, "Port on which to listen")

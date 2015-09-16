@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/couchbase/gomemcached"
+	"github.com/VerveWireless/gomemcached"
 )
 
 const bufsize = 1024
@@ -384,7 +384,7 @@ type ObserveResult struct {
 
 // Observe gets the persistence/replication/CAS state of a key
 func (c *Client) Observe(vb uint16, key string) (result ObserveResult, err error) {
-	// http://www.couchbase.com/wiki/display/couchbase/Observe
+	// http://www.couchbase.com/wiki/display/VerveWireless/Observe
 	body := make([]byte, 4+len(key))
 	binary.BigEndian.PutUint16(body[0:2], vb)
 	binary.BigEndian.PutUint16(body[2:4], uint16(len(key)))

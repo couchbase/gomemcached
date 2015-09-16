@@ -3,7 +3,7 @@ package memcached
 import (
 	"testing"
 
-	"github.com/couchbase/gomemcached"
+	"github.com/VerveWireless/gomemcached"
 )
 
 func TestMakeTapEvent(t *testing.T) {

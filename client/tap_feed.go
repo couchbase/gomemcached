@@ -8,10 +8,10 @@ import (
 	"log"
 	"math"
 
-	"github.com/couchbase/gomemcached"
+	"github.com/VerveWireless/gomemcached"
 )
 
-// TAP protocol docs: <http://www.couchbase.com/wiki/display/couchbase/TAP+Protocol>
+// TAP protocol docs: <http://www.couchbase.com/wiki/display/VerveWireless/TAP+Protocol>
 
 // TapOpcode is the tap operation type (found in TapEvent)
 type TapOpcode uint8

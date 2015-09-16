@@ -5,7 +5,7 @@ import (
 	"log"
 	//"time"
 
-	"github.com/couchbase/gomemcached/client"
+	"github.com/VerveWireless/gomemcached/client"
 )
 
 var prot = flag.String("prot", "tcp", "Layer 3 protocol (tcp, tcp4, tcp6)")

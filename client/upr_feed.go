@@ -8,7 +8,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/couchbase/gomemcached"
+	"github.com/VerveWireless/gomemcached"
 	"log"
 	"strconv"
 	"sync"
@@ -359,7 +359,7 @@ func handleStreamRequest(
 	switch {
 	case res.Status == gomemcached.ROLLBACK:
 		log.Printf("Rollback response. body=%v\n",res.Body)
-		
+
 		rollback = binary.BigEndian.Uint64(res.Body)
 		log.Printf("Rollback %v for vb %v\n", rollback, res.Opaque)
 		return res.Status, rollback, nil, nil
@@ -435,7 +435,7 @@ loop:
 				if status == gomemcached.ROLLBACK {
 					event = makeUprEvent(pkt, stream)
 					event.Status = status
-					
+
 					// rollback stream
 					log.Printf("UPR_STREAMREQ with rollback %d for vb %d Failed: %v", rb, vb, err)
 					// delete the stream from the vbmap for the feed
@@ -448,7 +448,7 @@ loop:
 					event.Seqno = stream.StartSeq
 					event.FailoverLog = flog
 					event.Status = status
-					
+
 					stream.connected = true
 					log.Printf("UPR_STREAMREQ for vb %d successful", vb)
 

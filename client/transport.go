@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/couchbase/gomemcached"
+	"github.com/VerveWireless/gomemcached"
 )
 
 var errNoConn = errors.New("no connection")
