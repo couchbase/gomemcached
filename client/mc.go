@@ -189,6 +189,16 @@ func (c *Client) Del(vb uint16, key string) (*gomemcached.MCResponse, error) {
 		Key:     []byte(key)})
 }
 
+// DelCas attempts to delete a key with a CAS.
+func (c *Client) DelCas(vb uint16, key string, cas uint64) (*gomemcached.MCResponse, error) {
+	return c.Send(&gomemcached.MCRequest{
+		Opcode:  gomemcached.DELETE,
+		VBucket: vb,
+		Key:     []byte(key),
+		Cas:     cas,
+	})
+}
+
 // Get a random document
 func (c *Client) GetRandomDoc() (*gomemcached.MCResponse, error) {
 	return c.Send(&gomemcached.MCRequest{
