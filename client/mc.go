@@ -331,7 +331,7 @@ func (c *Client) TransmitResponse(res *gomemcached.MCResponse) error {
 // Receive a response
 func (c *Client) Receive() (*gomemcached.MCResponse, error) {
 	resp, _, err := getResponse(c.conn, c.hdrBuf)
-	if err != nil && resp.Status != gomemcached.KEY_ENOENT && resp.Status != gomemcached.EBUSY {
+	if err != nil && !isNonFatalStatus(resp.Status) {
 		c.setHealthy(false)
 	}
 	return resp, err
@@ -345,10 +345,17 @@ func (c *Client) ReceiveWithDeadline(deadline time.Time) (*gomemcached.MCRespons
 	// Clear read deadline to avoid interference with future read operations.
 	c.conn.(net.Conn).SetReadDeadline(time.Time{})
 
-	if err != nil && resp.Status != gomemcached.KEY_ENOENT && resp.Status != gomemcached.EBUSY {
+	if err != nil && !isNonFatalStatus(resp.Status) {
 		c.setHealthy(false)
 	}
 	return resp, err
+}
+
+func isNonFatalStatus(status gomemcached.Status) bool {
+	return status == gomemcached.KEY_ENOENT ||
+		status == gomemcached.EBUSY ||
+		status == gomemcached.KEY_EEXISTS ||
+		status == gomemcached.NOT_MY_VBUCKET
 }
 
 func appendMutationToken(bytes []byte) []byte {
@@ -357,7 +364,7 @@ func appendMutationToken(bytes []byte) []byte {
 	return bytes
 }
 
-//Send a hello command to enable MutationTokens
+// Send a hello command to enable MutationTokens
 func (c *Client) EnableMutationToken() (*gomemcached.MCResponse, error) {
 	var payload []byte
 	payload = appendMutationToken(payload)
@@ -370,7 +377,7 @@ func (c *Client) EnableMutationToken() (*gomemcached.MCResponse, error) {
 
 }
 
-//Send a hello command to enable specific features
+// Send a hello command to enable specific features
 func (c *Client) EnableFeatures(features Features) (*gomemcached.MCResponse, error) {
 	var payload []byte
 	collectionsEnabled := 0
@@ -1242,12 +1249,14 @@ type CASState struct {
 
 // CASNext is a non-callback, loop-based version of CAS method.
 //
-//  Usage is like this:
+//	Usage is like this:
 //
 // var state memcached.CASState
-// for client.CASNext(vb, key, exp, &state) {
-//     state.Value = some_mutation(state.Value)
-// }
+//
+//	for client.CASNext(vb, key, exp, &state) {
+//	    state.Value = some_mutation(state.Value)
+//	}
+//
 // if state.Err != nil { ... }
 func (c *Client) CASNext(vb uint16, k string, exp int, state *CASState) bool {
 	if state.initialized {
