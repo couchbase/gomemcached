@@ -226,7 +226,6 @@ func (res *MCResponse) receiveInternal(r io.Reader, hdrBytes, buf []byte, getter
 			if err != nil {
 				buf = make([]byte, bufNeed)
 			} else {
-				buf = buf[0:bufNeed]
 				res.recycleFunc = func() {
 					done(buf)
 				}
