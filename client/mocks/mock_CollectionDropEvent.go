@@ -21,6 +21,10 @@ func (_m *CollectionDropEvent) EXPECT() *CollectionDropEvent_Expecter {
 func (_m *CollectionDropEvent) GetCollectionId() (uint32, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetCollectionId")
+	}
+
 	var r0 uint32
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (uint32, error)); ok {
@@ -72,6 +76,10 @@ func (_c *CollectionDropEvent_GetCollectionId_Call) RunAndReturn(run func() (uin
 func (_m *CollectionDropEvent) GetManifestId() (uint64, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetManifestId")
+	}
+
 	var r0 uint64
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (uint64, error)); ok {
@@ -122,6 +130,10 @@ func (_c *CollectionDropEvent_GetManifestId_Call) RunAndReturn(run func() (uint6
 // GetScopeId provides a mock function with given fields:
 func (_m *CollectionDropEvent) GetScopeId() (uint32, error) {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetScopeId")
+	}
 
 	var r0 uint32
 	var r1 error

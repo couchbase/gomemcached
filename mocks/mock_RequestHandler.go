@@ -27,6 +27,10 @@ func (_m *RequestHandler) EXPECT() *RequestHandler_Expecter {
 func (_m *RequestHandler) HandleMessage(_a0 io.Writer, _a1 *gomemcached.MCRequest) *gomemcached.MCResponse {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for HandleMessage")
+	}
+
 	var r0 *gomemcached.MCResponse
 	if rf, ok := ret.Get(0).(func(io.Writer, *gomemcached.MCRequest) *gomemcached.MCResponse); ok {
 		r0 = rf(_a0, _a1)

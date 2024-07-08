@@ -21,6 +21,10 @@ func (_m *CollectionChangedEvent) EXPECT() *CollectionChangedEvent_Expecter {
 func (_m *CollectionChangedEvent) GetCollectionId() (uint32, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetCollectionId")
+	}
+
 	var r0 uint32
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (uint32, error)); ok {
@@ -72,6 +76,10 @@ func (_c *CollectionChangedEvent_GetCollectionId_Call) RunAndReturn(run func() (
 func (_m *CollectionChangedEvent) GetManifestId() (uint64, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetManifestId")
+	}
+
 	var r0 uint64
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (uint64, error)); ok {
@@ -122,6 +130,10 @@ func (_c *CollectionChangedEvent_GetManifestId_Call) RunAndReturn(run func() (ui
 // GetMaxTTL provides a mock function with given fields:
 func (_m *CollectionChangedEvent) GetMaxTTL() (uint32, error) {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMaxTTL")
+	}
 
 	var r0 uint32
 	var r1 error

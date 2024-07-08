@@ -3,10 +3,7 @@
 package mocks
 
 import (
-	io "io"
-
 	gomemcached "github.com/couchbase/gomemcached"
-
 	memcached "github.com/couchbase/gomemcached/client"
 
 	mock "github.com/stretchr/testify/mock"
@@ -37,6 +34,10 @@ func (_m *ClientIface) Add(vb uint16, key string, flags int, exp int, body []byt
 	_ca = append(_ca, vb, key, flags, exp, body)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Add")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -111,6 +112,10 @@ func (_m *ClientIface) Append(vb uint16, key string, data []byte, context ...*me
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Append")
+	}
+
 	var r0 *gomemcached.MCResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(uint16, string, []byte, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
@@ -175,6 +180,10 @@ func (_c *ClientIface_Append_Call) RunAndReturn(run func(uint16, string, []byte,
 func (_m *ClientIface) Auth(user string, pass string) (*gomemcached.MCResponse, error) {
 	ret := _m.Called(user, pass)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Auth")
+	}
+
 	var r0 *gomemcached.MCResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string) (*gomemcached.MCResponse, error)); ok {
@@ -230,6 +239,10 @@ func (_c *ClientIface_Auth_Call) RunAndReturn(run func(string, string) (*gomemca
 func (_m *ClientIface) AuthList() (*gomemcached.MCResponse, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for AuthList")
+	}
+
 	var r0 *gomemcached.MCResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (*gomemcached.MCResponse, error)); ok {
@@ -282,6 +295,10 @@ func (_c *ClientIface_AuthList_Call) RunAndReturn(run func() (*gomemcached.MCRes
 // AuthPlain provides a mock function with given fields: user, pass
 func (_m *ClientIface) AuthPlain(user string, pass string) (*gomemcached.MCResponse, error) {
 	ret := _m.Called(user, pass)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuthPlain")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -338,6 +355,10 @@ func (_c *ClientIface_AuthPlain_Call) RunAndReturn(run func(string, string) (*go
 func (_m *ClientIface) AuthScramSha(user string, pass string) (*gomemcached.MCResponse, error) {
 	ret := _m.Called(user, pass)
 
+	if len(ret) == 0 {
+		panic("no return value specified for AuthScramSha")
+	}
+
 	var r0 *gomemcached.MCResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string) (*gomemcached.MCResponse, error)); ok {
@@ -392,6 +413,10 @@ func (_c *ClientIface_AuthScramSha_Call) RunAndReturn(run func(string, string) (
 // CAS provides a mock function with given fields: vb, k, f, initexp
 func (_m *ClientIface) CAS(vb uint16, k string, f memcached.CasFunc, initexp int) (*gomemcached.MCResponse, error) {
 	ret := _m.Called(vb, k, f, initexp)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CAS")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -450,6 +475,10 @@ func (_c *ClientIface_CAS_Call) RunAndReturn(run func(uint16, string, memcached.
 func (_m *ClientIface) CASNext(vb uint16, k string, exp int, state *memcached.CASState) bool {
 	ret := _m.Called(vb, k, exp, state)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CASNext")
+	}
+
 	var r0 bool
 	if rf, ok := ret.Get(0).(func(uint16, string, int, *memcached.CASState) bool); ok {
 		r0 = rf(vb, k, exp, state)
@@ -501,6 +530,10 @@ func (_m *ClientIface) CancelRangeScan(vb uint16, uuid []byte, opaque uint32, co
 	_ca = append(_ca, vb, uuid, opaque)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CancelRangeScan")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -566,6 +599,10 @@ func (_c *ClientIface_CancelRangeScan_Call) RunAndReturn(run func(uint16, []byte
 func (_m *ClientIface) Close() error {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for Close")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
@@ -607,6 +644,10 @@ func (_c *ClientIface_Close_Call) RunAndReturn(run func() error) *ClientIface_Cl
 func (_m *ClientIface) CollectionEnabled() bool {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for CollectionEnabled")
+	}
+
 	var r0 bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
 		r0 = rf()
@@ -647,6 +688,10 @@ func (_c *ClientIface_CollectionEnabled_Call) RunAndReturn(run func() bool) *Cli
 // CollectionsGetCID provides a mock function with given fields: scope, collection
 func (_m *ClientIface) CollectionsGetCID(scope string, collection string) (*gomemcached.MCResponse, error) {
 	ret := _m.Called(scope, collection)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CollectionsGetCID")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -710,6 +755,10 @@ func (_m *ClientIface) ContinueRangeScan(vb uint16, uuid []byte, opaque uint32, 
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ContinueRangeScan")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(uint16, []byte, uint32, uint32, uint32, uint32, ...*memcached.ClientContext) error); ok {
 		r0 = rf(vb, uuid, opaque, items, maxSize, timeout, context...)
@@ -771,6 +820,10 @@ func (_m *ClientIface) CreateRandomScan(vb uint16, collId uint32, sampleSize int
 	_ca = append(_ca, vb, collId, sampleSize, withDocs)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateRandomScan")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -843,6 +896,10 @@ func (_m *ClientIface) CreateRangeScan(vb uint16, collId uint32, start []byte, e
 	_ca = append(_ca, vb, collId, start, excludeStart, end, excludeEnd, withDocs)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateRangeScan")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -919,6 +976,10 @@ func (_m *ClientIface) Decr(vb uint16, key string, amt uint64, def uint64, exp i
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Decr")
+	}
+
 	var r0 uint64
 	var r1 error
 	if rf, ok := ret.Get(0).(func(uint16, string, uint64, uint64, int, ...*memcached.ClientContext) (uint64, error)); ok {
@@ -990,6 +1051,10 @@ func (_m *ClientIface) Del(vb uint16, key string, context ...*memcached.ClientCo
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Del")
+	}
+
 	var r0 *gomemcached.MCResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(uint16, string, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
@@ -1053,6 +1118,10 @@ func (_c *ClientIface_Del_Call) RunAndReturn(run func(uint16, string, ...*memcac
 func (_m *ClientIface) EnableDataPool(getter func(uint64) ([]byte, error), doneCb func([]byte)) error {
 	ret := _m.Called(getter, doneCb)
 
+	if len(ret) == 0 {
+		panic("no return value specified for EnableDataPool")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(func(uint64) ([]byte, error), func([]byte)) error); ok {
 		r0 = rf(getter, doneCb)
@@ -1095,6 +1164,10 @@ func (_c *ClientIface_EnableDataPool_Call) RunAndReturn(run func(func(uint64) ([
 // EnableFeatures provides a mock function with given fields: features
 func (_m *ClientIface) EnableFeatures(features memcached.Features) (*gomemcached.MCResponse, error) {
 	ret := _m.Called(features)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnableFeatures")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -1149,6 +1222,10 @@ func (_c *ClientIface_EnableFeatures_Call) RunAndReturn(run func(memcached.Featu
 // EnableMutationToken provides a mock function with given fields:
 func (_m *ClientIface) EnableMutationToken() (*gomemcached.MCResponse, error) {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnableMutationToken")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -1209,6 +1286,10 @@ func (_m *ClientIface) Get(vb uint16, key string, context ...*memcached.ClientCo
 	_ca = append(_ca, vb, key)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -1280,6 +1361,10 @@ func (_m *ClientIface) GetAllVbSeqnos(vbSeqnoMap map[uint16]uint64, context ...*
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllVbSeqnos")
+	}
+
 	var r0 map[uint16]uint64
 	var r1 error
 	if rf, ok := ret.Get(0).(func(map[uint16]uint64, ...*memcached.ClientContext) (map[uint16]uint64, error)); ok {
@@ -1348,6 +1433,10 @@ func (_m *ClientIface) GetAndTouch(vb uint16, key string, exp int, context ...*m
 	_ca = append(_ca, vb, key, exp)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAndTouch")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -1420,6 +1509,10 @@ func (_m *ClientIface) GetBulk(vb uint16, keys []string, rv map[string]*gomemcac
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetBulk")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(uint16, []string, map[string]*gomemcached.MCResponse, []string, ...*memcached.ClientContext) error); ok {
 		r0 = rf(vb, keys, rv, subPaths, context...)
@@ -1472,6 +1565,10 @@ func (_c *ClientIface_GetBulk_Call) RunAndReturn(run func(uint16, []string, map[
 // GetCollectionsManifest provides a mock function with given fields:
 func (_m *ClientIface) GetCollectionsManifest() (*gomemcached.MCResponse, error) {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCollectionsManifest")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -1526,6 +1623,10 @@ func (_c *ClientIface_GetCollectionsManifest_Call) RunAndReturn(run func() (*gom
 func (_m *ClientIface) GetConnName() string {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnName")
+	}
+
 	var r0 string
 	if rf, ok := ret.Get(0).(func() string); ok {
 		r0 = rf()
@@ -1566,6 +1667,10 @@ func (_c *ClientIface_GetConnName_Call) RunAndReturn(run func() string) *ClientI
 // GetErrorMap provides a mock function with given fields: errMapVersion
 func (_m *ClientIface) GetErrorMap(errMapVersion gomemcached.ErrorMapVersion) (map[string]interface{}, error) {
 	ret := _m.Called(errMapVersion)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetErrorMap")
+	}
 
 	var r0 map[string]interface{}
 	var r1 error
@@ -1627,6 +1732,10 @@ func (_m *ClientIface) GetMeta(vb uint16, key string, context ...*memcached.Clie
 	_ca = append(_ca, vb, key)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMeta")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -1697,6 +1806,10 @@ func (_m *ClientIface) GetRandomDoc(context ...*memcached.ClientContext) (*gomem
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetRandomDoc")
+	}
+
 	var r0 *gomemcached.MCResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
@@ -1765,6 +1878,10 @@ func (_m *ClientIface) GetSubdoc(vb uint16, key string, subPaths []string, conte
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetSubdoc")
+	}
+
 	var r0 *gomemcached.MCResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(uint16, string, []string, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
@@ -1826,15 +1943,19 @@ func (_c *ClientIface_GetSubdoc_Call) RunAndReturn(run func(uint16, string, []st
 }
 
 // Hijack provides a mock function with given fields:
-func (_m *ClientIface) Hijack() io.ReadWriteCloser {
+func (_m *ClientIface) Hijack() memcached.MemcachedConnection {
 	ret := _m.Called()
 
-	var r0 io.ReadWriteCloser
-	if rf, ok := ret.Get(0).(func() io.ReadWriteCloser); ok {
+	if len(ret) == 0 {
+		panic("no return value specified for Hijack")
+	}
+
+	var r0 memcached.MemcachedConnection
+	if rf, ok := ret.Get(0).(func() memcached.MemcachedConnection); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(io.ReadWriteCloser)
+			r0 = ret.Get(0).(memcached.MemcachedConnection)
 		}
 	}
 
@@ -1858,12 +1979,12 @@ func (_c *ClientIface_Hijack_Call) Run(run func()) *ClientIface_Hijack_Call {
 	return _c
 }
 
-func (_c *ClientIface_Hijack_Call) Return(_a0 io.ReadWriteCloser) *ClientIface_Hijack_Call {
+func (_c *ClientIface_Hijack_Call) Return(_a0 memcached.MemcachedConnection) *ClientIface_Hijack_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *ClientIface_Hijack_Call) RunAndReturn(run func() io.ReadWriteCloser) *ClientIface_Hijack_Call {
+func (_c *ClientIface_Hijack_Call) RunAndReturn(run func() memcached.MemcachedConnection) *ClientIface_Hijack_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1878,6 +1999,10 @@ func (_m *ClientIface) Incr(vb uint16, key string, amt uint64, def uint64, exp i
 	_ca = append(_ca, vb, key, amt, def, exp)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Incr")
+	}
 
 	var r0 uint64
 	var r1 error
@@ -1943,6 +2068,10 @@ func (_c *ClientIface_Incr_Call) RunAndReturn(run func(uint16, string, uint64, u
 func (_m *ClientIface) LastBucket() string {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for LastBucket")
+	}
+
 	var r0 string
 	if rf, ok := ret.Get(0).(func() string); ok {
 		r0 = rf()
@@ -1983,6 +2112,10 @@ func (_c *ClientIface_LastBucket_Call) RunAndReturn(run func() string) *ClientIf
 // NewUprFeed provides a mock function with given fields:
 func (_m *ClientIface) NewUprFeed() (*memcached.UprFeed, error) {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewUprFeed")
+	}
 
 	var r0 *memcached.UprFeed
 	var r1 error
@@ -2037,6 +2170,10 @@ func (_c *ClientIface_NewUprFeed_Call) RunAndReturn(run func() (*memcached.UprFe
 func (_m *ClientIface) NewUprFeedIface() (memcached.UprFeedIface, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for NewUprFeedIface")
+	}
+
 	var r0 memcached.UprFeedIface
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (memcached.UprFeedIface, error)); ok {
@@ -2089,6 +2226,10 @@ func (_c *ClientIface_NewUprFeedIface_Call) RunAndReturn(run func() (memcached.U
 // NewUprFeedWithConfig provides a mock function with given fields: ackByClient
 func (_m *ClientIface) NewUprFeedWithConfig(ackByClient bool) (*memcached.UprFeed, error) {
 	ret := _m.Called(ackByClient)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewUprFeedWithConfig")
+	}
 
 	var r0 *memcached.UprFeed
 	var r1 error
@@ -2144,6 +2285,10 @@ func (_c *ClientIface_NewUprFeedWithConfig_Call) RunAndReturn(run func(bool) (*m
 func (_m *ClientIface) NewUprFeedWithConfigIface(ackByClient bool) (memcached.UprFeedIface, error) {
 	ret := _m.Called(ackByClient)
 
+	if len(ret) == 0 {
+		panic("no return value specified for NewUprFeedWithConfigIface")
+	}
+
 	var r0 memcached.UprFeedIface
 	var r1 error
 	if rf, ok := ret.Get(0).(func(bool) (memcached.UprFeedIface, error)); ok {
@@ -2198,6 +2343,10 @@ func (_c *ClientIface_NewUprFeedWithConfigIface_Call) RunAndReturn(run func(bool
 func (_m *ClientIface) Observe(vb uint16, key string) (memcached.ObserveResult, error) {
 	ret := _m.Called(vb, key)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Observe")
+	}
+
 	var r0 memcached.ObserveResult
 	var r1 error
 	if rf, ok := ret.Get(0).(func(uint16, string) (memcached.ObserveResult, error)); ok {
@@ -2250,6 +2399,10 @@ func (_c *ClientIface_Observe_Call) RunAndReturn(run func(uint16, string) (memca
 // ObserveSeq provides a mock function with given fields: vb, vbuuid
 func (_m *ClientIface) ObserveSeq(vb uint16, vbuuid uint64) (*memcached.ObserveSeqResult, error) {
 	ret := _m.Called(vb, vbuuid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ObserveSeq")
+	}
 
 	var r0 *memcached.ObserveSeqResult
 	var r1 error
@@ -2306,6 +2459,10 @@ func (_c *ClientIface_ObserveSeq_Call) RunAndReturn(run func(uint16, uint64) (*m
 func (_m *ClientIface) Receive() (*gomemcached.MCResponse, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for Receive")
+	}
+
 	var r0 *gomemcached.MCResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (*gomemcached.MCResponse, error)); ok {
@@ -2358,6 +2515,10 @@ func (_c *ClientIface_Receive_Call) RunAndReturn(run func() (*gomemcached.MCResp
 // ReceiveWithDeadline provides a mock function with given fields: deadline
 func (_m *ClientIface) ReceiveWithDeadline(deadline time.Time) (*gomemcached.MCResponse, error) {
 	ret := _m.Called(deadline)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReceiveWithDeadline")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -2413,6 +2574,10 @@ func (_c *ClientIface_ReceiveWithDeadline_Call) RunAndReturn(run func(time.Time)
 func (_m *ClientIface) Replica() bool {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for Replica")
+	}
+
 	var r0 bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
 		r0 = rf()
@@ -2453,6 +2618,10 @@ func (_c *ClientIface_Replica_Call) RunAndReturn(run func() bool) *ClientIface_R
 // SelectBucket provides a mock function with given fields: bucket
 func (_m *ClientIface) SelectBucket(bucket string) (*gomemcached.MCResponse, error) {
 	ret := _m.Called(bucket)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SelectBucket")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -2507,6 +2676,10 @@ func (_c *ClientIface_SelectBucket_Call) RunAndReturn(run func(string) (*gomemca
 // Send provides a mock function with given fields: req
 func (_m *ClientIface) Send(req *gomemcached.MCRequest) (*gomemcached.MCResponse, error) {
 	ret := _m.Called(req)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Send")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -2568,6 +2741,10 @@ func (_m *ClientIface) Set(vb uint16, key string, flags int, exp int, body []byt
 	_ca = append(_ca, vb, key, flags, exp, body)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Set")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -2641,6 +2818,10 @@ func (_m *ClientIface) SetCas(vb uint16, key string, flags int, exp int, cas uin
 	_ca = append(_ca, vb, key, flags, exp, cas, body)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetCas")
+	}
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
@@ -2881,6 +3062,10 @@ func (_m *ClientIface) SetSubdoc(vb uint16, key string, ops []memcached.SubDocOp
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
+	if len(ret) == 0 {
+		panic("no return value specified for SetSubdoc")
+	}
+
 	var r0 *gomemcached.MCResponse
 	var r1 error
 	if rf, ok := ret.Get(0).(func(uint16, string, []memcached.SubDocOp, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
@@ -2945,6 +3130,10 @@ func (_c *ClientIface_SetSubdoc_Call) RunAndReturn(run func(uint16, string, []me
 func (_m *ClientIface) Stats(key string) ([]memcached.StatValue, error) {
 	ret := _m.Called(key)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Stats")
+	}
+
 	var r0 []memcached.StatValue
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string) ([]memcached.StatValue, error)); ok {
@@ -2999,6 +3188,10 @@ func (_c *ClientIface_Stats_Call) RunAndReturn(run func(string) ([]memcached.Sta
 func (_m *ClientIface) StatsFunc(key string, fn func([]byte, []byte)) error {
 	ret := _m.Called(key, fn)
 
+	if len(ret) == 0 {
+		panic("no return value specified for StatsFunc")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, func([]byte, []byte)) error); ok {
 		r0 = rf(key, fn)
@@ -3041,6 +3234,10 @@ func (_c *ClientIface_StatsFunc_Call) RunAndReturn(run func(string, func([]byte,
 // StatsMap provides a mock function with given fields: key
 func (_m *ClientIface) StatsMap(key string) (map[string]string, error) {
 	ret := _m.Called(key)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StatsMap")
+	}
 
 	var r0 map[string]string
 	var r1 error
@@ -3096,6 +3293,10 @@ func (_c *ClientIface_StatsMap_Call) RunAndReturn(run func(string) (map[string]s
 func (_m *ClientIface) StatsMapForSpecifiedStats(key string, statsMap map[string]string) error {
 	ret := _m.Called(key, statsMap)
 
+	if len(ret) == 0 {
+		panic("no return value specified for StatsMapForSpecifiedStats")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, map[string]string) error); ok {
 		r0 = rf(key, statsMap)
@@ -3139,6 +3340,10 @@ func (_c *ClientIface_StatsMapForSpecifiedStats_Call) RunAndReturn(run func(stri
 func (_m *ClientIface) Transmit(req *gomemcached.MCRequest) error {
 	ret := _m.Called(req)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Transmit")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*gomemcached.MCRequest) error); ok {
 		r0 = rf(req)
@@ -3180,6 +3385,10 @@ func (_c *ClientIface_Transmit_Call) RunAndReturn(run func(*gomemcached.MCReques
 // TransmitResponse provides a mock function with given fields: res
 func (_m *ClientIface) TransmitResponse(res *gomemcached.MCResponse) error {
 	ret := _m.Called(res)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TransmitResponse")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*gomemcached.MCResponse) error); ok {
@@ -3223,6 +3432,10 @@ func (_c *ClientIface_TransmitResponse_Call) RunAndReturn(run func(*gomemcached.
 func (_m *ClientIface) TransmitWithDeadline(req *gomemcached.MCRequest, deadline time.Time) error {
 	ret := _m.Called(req, deadline)
 
+	if len(ret) == 0 {
+		panic("no return value specified for TransmitWithDeadline")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*gomemcached.MCRequest, time.Time) error); ok {
 		r0 = rf(req, deadline)
@@ -3265,6 +3478,10 @@ func (_c *ClientIface_TransmitWithDeadline_Call) RunAndReturn(run func(*gomemcac
 // UprGetFailoverLog provides a mock function with given fields: vb
 func (_m *ClientIface) UprGetFailoverLog(vb []uint16) (map[uint16]*memcached.FailoverLog, error) {
 	ret := _m.Called(vb)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UprGetFailoverLog")
+	}
 
 	var r0 map[uint16]*memcached.FailoverLog
 	var r1 error
@@ -3326,6 +3543,10 @@ func (_m *ClientIface) ValidateKey(vb uint16, key string, context ...*memcached.
 	_ca = append(_ca, vb, key)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateKey")
+	}
 
 	var r0 bool
 	var r1 error

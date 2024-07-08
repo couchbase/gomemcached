@@ -8,12 +8,17 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/couchbase/gomemcached"
-	"github.com/couchbase/goutils/logging"
+	"os"
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
+
+	"github.com/couchbase/gomemcached"
+	"github.com/couchbase/goutils/logging"
 )
+
+const UPRDefaultNoopIntervalSeconds = 120
 
 const uprMutationExtraLen = 30
 const uprDeletetionExtraLen = 18
@@ -25,7 +30,6 @@ const bufferAckThreshold = 0.2
 const opaqueOpen = 0xBEAF0001
 const opaqueFailover = 0xDEADBEEF
 const opaqueGetSeqno = 0xDEADBEEF
-const uprDefaultNoopInterval = 120
 const dcpOsoExtraLen = 4
 
 // Counter on top of opaqueOpen that others can draw from for open and control msgs
@@ -120,6 +124,21 @@ type UprFeatures struct {
 	EnableStreamId       bool
 	EnableOso            bool
 	SendStreamEndOnClose bool
+	clientReadThreshold  int // set by EnableDeadConnDetection()
+}
+
+// Enables client-side dead connection detection. `threshold` should have a minimum value of (2*UPRDefaultNoopInterval).
+//
+// Refer https://github.com/couchbase/kv_engine/blob/df1df5e3986dbca368834e6e32c98103deeeec1b/docs/dcp/documentation/dead-connections.md
+func (f *UprFeatures) EnableDeadConnDetection(thresholdSeconds int) error {
+	minThreshold := 2 * UPRDefaultNoopIntervalSeconds
+
+	if thresholdSeconds < minThreshold {
+		return fmt.Errorf("threshold value (%v) is too low, needs to be atleast %v", thresholdSeconds, minThreshold)
+	}
+
+	f.clientReadThreshold = thresholdSeconds
+	return nil
 }
 
 /**
@@ -295,6 +314,10 @@ type UprFeed struct {
 
 	closeStreamRequested map[uint16]bool
 	closeStreamReqMtx    sync.RWMutex
+
+	// Client will wait for `clientReadThreshold` seconds to receive a message
+	// from the Producer before considering the connection to be dead, and disconnect.
+	clientReadThreshold int
 }
 
 // Exported interface - to allow for mocking
@@ -548,13 +571,15 @@ func (feed *UprFeed) uprOpen(name string, sequence uint32, bufSize uint32, featu
 	rq = &gomemcached.MCRequest{
 		Opcode: gomemcached.UPR_CONTROL,
 		Key:    []byte("set_noop_interval"),
-		Body:   []byte(strconv.Itoa(int(uprDefaultNoopInterval))),
+		Body:   []byte(strconv.Itoa(int(UPRDefaultNoopIntervalSeconds))),
 		Opaque: getUprOpenCtrlOpaque(),
 	}
 	err = sendMcRequestSync(feed.conn, rq)
 	if err != nil {
 		return
 	}
+
+	feed.clientReadThreshold = features.clientReadThreshold
 
 	if features.CompressionType == CompressionTypeSnappy {
 		activatedFeatures.CompressionType = CompressionTypeNone
@@ -887,152 +912,164 @@ loop:
 
 func (feed *UprFeed) runFeed(ch chan *UprEvent) {
 	defer close(ch)
+	defer logging.Infof("runFeed exiting")
+	defer feed.Close()
+
 	var headerBuf [gomemcached.HDR_LEN]byte
 	var pkt gomemcached.MCRequest
 	var event *UprEvent
 
-	mc := feed.conn.Hijack()
+	rawConn := feed.conn.Hijack()
 	uprStats := &feed.stats
 
-loop:
 	for {
 		select {
 		case <-feed.closer:
 			logging.Infof("Feed has been closed. Exiting.")
-			break loop
+			return
 		default:
-			bytes, err := pkt.Receive(mc, headerBuf[:])
+			if feed.clientReadThreshold > 0 {
+				// refreshing the connection by extending the deadline to receive the next event by;
+				// after which the Producer will be considered "stuck" & disconnected from
+				rawConn.SetReadDeadline(time.Now().Add(time.Duration(feed.clientReadThreshold) * time.Second))
+			}
+			bytes, err := pkt.Receive(rawConn, headerBuf[:])
+
 			if err != nil {
-				logging.Errorf("Error in receive %s", err.Error())
+				if errors.Is(err, os.ErrDeadlineExceeded) {
+					logging.Errorf("failed to receive a message from the DCP Producer before crossing the dead-connection threshold (%vs)", feed.clientReadThreshold)
+				} else {
+					logging.Errorf("Error in receive %s", err.Error())
+				}
 				feed.Error = err
 				// send all the stream close messages to the client
 				feed.doStreamClose(ch)
-				break loop
-			} else {
-				event = nil
-				res := &gomemcached.MCResponse{
-					Opcode: pkt.Opcode,
-					Cas:    pkt.Cas,
+				return
+			}
+
+			event = nil
+			res := &gomemcached.MCResponse{
+				Opcode: pkt.Opcode,
+				Cas:    pkt.Cas,
+				Opaque: pkt.Opaque,
+				Status: gomemcached.Status(pkt.VBucket),
+				Extras: pkt.Extras,
+				Key:    pkt.Key,
+				Body:   pkt.Body,
+			}
+
+			vb := vbOpaque(pkt.Opaque)
+			appOpaque := appOpaque(pkt.Opaque)
+			uprStats.TotalBytes = uint64(bytes)
+
+			feed.muVbstreams.RLock()
+			stream := feed.vbstreams[vb]
+			feed.muVbstreams.RUnlock()
+
+			switch pkt.Opcode {
+			case gomemcached.UPR_STREAMREQ:
+				event, err = feed.negotiator.handleStreamRequest(feed, headerBuf, &pkt, bytes, res)
+				if err != nil {
+					logging.Infof(err.Error())
+					return
+				}
+			case gomemcached.UPR_MUTATION,
+				gomemcached.UPR_DELETION,
+				gomemcached.UPR_EXPIRATION:
+				if stream == nil {
+					logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
+					return
+				}
+				event = makeUprEvent(pkt, stream, bytes)
+				uprStats.TotalMutation++
+
+			case gomemcached.UPR_STREAMEND:
+				feed.closeStreamReqMtx.RLock()
+				closeStreamRequested := feed.closeStreamRequested[vb]
+				feed.closeStreamReqMtx.RUnlock()
+				if stream == nil && (!closeStreamRequested && !feed.activatedFeatures.SendStreamEndOnClose) {
+					logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
+					return
+				}
+				//stream has ended
+				event = makeUprEvent(pkt, stream, bytes)
+				logging.Infof("Stream Ended for vb %d", vb)
+
+				feed.negotiator.deleteStreamFromMap(vb, appOpaque)
+				feed.cleanUpVbStream(vb)
+
+			case gomemcached.UPR_SNAPSHOT:
+				if stream == nil {
+					logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
+					return
+				}
+				// snapshot marker
+				event = makeUprEvent(pkt, stream, bytes)
+				uprStats.TotalSnapShot++
+
+			case gomemcached.UPR_FLUSH:
+				if stream == nil {
+					logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
+					return
+				}
+				// special processing for flush ?
+				event = makeUprEvent(pkt, stream, bytes)
+
+			case gomemcached.UPR_CLOSESTREAM:
+				feed.closeStreamReqMtx.RLock()
+				closeStreamRequested := feed.closeStreamRequested[vb]
+				feed.closeStreamReqMtx.RUnlock()
+				if stream == nil && (!closeStreamRequested && !feed.activatedFeatures.SendStreamEndOnClose) {
+					logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
+					return
+				}
+				event = makeUprEvent(pkt, stream, bytes)
+				event.Opcode = gomemcached.UPR_STREAMEND // opcode re-write !!
+				logging.Infof("Stream Closed for vb %d StreamEnd simulated", vb)
+
+				feed.negotiator.deleteStreamFromMap(vb, appOpaque)
+				feed.cleanUpVbStream(vb)
+
+			case gomemcached.UPR_ADDSTREAM:
+				logging.Infof("Opcode %v not implemented", pkt.Opcode)
+
+			case gomemcached.UPR_CONTROL, gomemcached.UPR_BUFFERACK:
+				if res.Status != gomemcached.SUCCESS {
+					logging.Infof("Opcode %v received status %d", pkt.Opcode.String(), res.Status)
+				}
+
+			case gomemcached.UPR_NOOP:
+				// send a NOOP back
+				noop := &gomemcached.MCResponse{
+					Opcode: gomemcached.UPR_NOOP,
 					Opaque: pkt.Opaque,
-					Status: gomemcached.Status(pkt.VBucket), // ????? why??
-					Extras: pkt.Extras,
-					Key:    pkt.Key,
-					Body:   pkt.Body,
 				}
 
-				vb := vbOpaque(pkt.Opaque)
-				appOpaque := appOpaque(pkt.Opaque)
-				uprStats.TotalBytes = uint64(bytes)
-
-				feed.muVbstreams.RLock()
-				stream := feed.vbstreams[vb]
-				feed.muVbstreams.RUnlock()
-
-				switch pkt.Opcode {
-				case gomemcached.UPR_STREAMREQ:
-					event, err = feed.negotiator.handleStreamRequest(feed, headerBuf, &pkt, bytes, res)
-					if err != nil {
-						logging.Infof(err.Error())
-						break loop
-					}
-				case gomemcached.UPR_MUTATION,
-					gomemcached.UPR_DELETION,
-					gomemcached.UPR_EXPIRATION:
-					if stream == nil {
-						logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
-						break loop
-					}
-					event = makeUprEvent(pkt, stream, bytes)
-					uprStats.TotalMutation++
-
-				case gomemcached.UPR_STREAMEND:
-					feed.closeStreamReqMtx.RLock()
-					closeStreamRequested := feed.closeStreamRequested[vb]
-					feed.closeStreamReqMtx.RUnlock()
-					if stream == nil && (!closeStreamRequested && !feed.activatedFeatures.SendStreamEndOnClose) {
-						logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
-						break loop
-					}
-					//stream has ended
-					event = makeUprEvent(pkt, stream, bytes)
-					logging.Infof("Stream Ended for vb %d", vb)
-
-					feed.negotiator.deleteStreamFromMap(vb, appOpaque)
-					feed.cleanUpVbStream(vb)
-
-				case gomemcached.UPR_SNAPSHOT:
-					if stream == nil {
-						logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
-						break loop
-					}
-					// snapshot marker
-					event = makeUprEvent(pkt, stream, bytes)
-					uprStats.TotalSnapShot++
-
-				case gomemcached.UPR_FLUSH:
-					if stream == nil {
-						logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
-						break loop
-					}
-					// special processing for flush ?
-					event = makeUprEvent(pkt, stream, bytes)
-
-				case gomemcached.UPR_CLOSESTREAM:
-					feed.closeStreamReqMtx.RLock()
-					closeStreamRequested := feed.closeStreamRequested[vb]
-					feed.closeStreamReqMtx.RUnlock()
-					if stream == nil && (!closeStreamRequested && !feed.activatedFeatures.SendStreamEndOnClose) {
-						logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
-						break loop
-					}
-					event = makeUprEvent(pkt, stream, bytes)
-					event.Opcode = gomemcached.UPR_STREAMEND // opcode re-write !!
-					logging.Infof("Stream Closed for vb %d StreamEnd simulated", vb)
-
-					feed.negotiator.deleteStreamFromMap(vb, appOpaque)
-					feed.cleanUpVbStream(vb)
-
-				case gomemcached.UPR_ADDSTREAM:
-					logging.Infof("Opcode %v not implemented", pkt.Opcode)
-
-				case gomemcached.UPR_CONTROL, gomemcached.UPR_BUFFERACK:
-					if res.Status != gomemcached.SUCCESS {
-						logging.Infof("Opcode %v received status %d", pkt.Opcode.String(), res.Status)
-					}
-
-				case gomemcached.UPR_NOOP:
-					// send a NOOP back
-					noop := &gomemcached.MCResponse{
-						Opcode: gomemcached.UPR_NOOP,
-						Opaque: pkt.Opaque,
-					}
-
-					if err := feed.conn.TransmitResponse(noop); err != nil {
-						logging.Warnf("failed to transmit command %s. Error %s", noop.Opcode.String(), err.Error())
-					}
-				case gomemcached.DCP_SYSTEM_EVENT:
-					if stream == nil {
-						logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
-						break loop
-					}
-					event = makeUprEvent(pkt, stream, bytes)
-				case gomemcached.UPR_FAILOVERLOG:
-					logging.Infof("Failover log for vb %d received: %v", vb, pkt)
-				case gomemcached.DCP_SEQNO_ADV:
-					if stream == nil {
-						logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
-						break loop
-					}
-					event = makeUprEvent(pkt, stream, bytes)
-				case gomemcached.DCP_OSO_SNAPSHOT:
-					if stream == nil {
-						logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
-						break loop
-					}
-					event = makeUprEvent(pkt, stream, bytes)
-				default:
-					logging.Infof("Recived an unknown response for vbucket %d", vb)
+				if err := feed.conn.TransmitResponse(noop); err != nil {
+					logging.Warnf("failed to transmit command %s. Error %s", noop.Opcode.String(), err.Error())
 				}
+			case gomemcached.DCP_SYSTEM_EVENT:
+				if stream == nil {
+					logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
+					return
+				}
+				event = makeUprEvent(pkt, stream, bytes)
+			case gomemcached.UPR_FAILOVERLOG:
+				logging.Infof("Failover log for vb %d received: %v", vb, pkt)
+			case gomemcached.DCP_SEQNO_ADV:
+				if stream == nil {
+					logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
+					return
+				}
+				event = makeUprEvent(pkt, stream, bytes)
+			case gomemcached.DCP_OSO_SNAPSHOT:
+				if stream == nil {
+					logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
+					return
+				}
+				event = makeUprEvent(pkt, stream, bytes)
+			default:
+				logging.Infof("Recived an unknown response for vbucket %d", vb)
 			}
 
 			if event != nil {
@@ -1040,7 +1077,7 @@ loop:
 				case ch <- event:
 				case <-feed.closer:
 					logging.Infof("Feed has been closed. Skip sending events. Exiting.")
-					break loop
+					return
 				}
 
 				feed.muVbstreams.RLock()
@@ -1058,9 +1095,6 @@ loop:
 			}
 		}
 	}
-
-	feed.Close()
-	logging.Infof("runFeed exiting")
 }
 
 // Client, after completing processing of an UprEvent, need to call this API to notify UprFeed,
