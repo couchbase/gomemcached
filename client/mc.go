@@ -49,7 +49,7 @@ type ClientIface interface {
 	GetRandomDoc(context ...*ClientContext) (*gomemcached.MCResponse, error)
 	GetSubdoc(vb uint16, key string, subPaths []string, context ...*ClientContext) (*gomemcached.MCResponse, error)
 	SetSubdoc(vb uint16, key string, ops []SubDocOp, context ...*ClientContext) (*gomemcached.MCResponse, error)
-	Hijack() io.ReadWriteCloser
+	Hijack() memcachedConnection
 	Incr(vb uint16, key string, amt, def uint64, exp int, context ...*ClientContext) (uint64, error)
 	LastBucket() string
 	Observe(vb uint16, key string) (result ObserveResult, err error)
@@ -1852,7 +1852,7 @@ func (mc *Client) UprGetFailoverLog(vb []uint16) (map[uint16]*FailoverLog, error
 // It also marks the connection as unhealthy since the client will
 // have lost control over the connection and can't otherwise verify
 // things are in good shape for connection pools.
-func (c *Client) Hijack() io.ReadWriteCloser {
+func (c *Client) Hijack() memcachedConnection {
 	c.setHealthy(false)
 	return c.conn
 }
