@@ -25,6 +25,10 @@ func (_m *TapItemParser) EXPECT() *TapItemParser_Expecter {
 func (_m *TapItemParser) Execute(_a0 io.Reader) (interface{}, error) {
 	ret := _m.Called(_a0)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Execute")
+	}
+
 	var r0 interface{}
 	var r1 error
 	if rf, ok := ret.Get(0).(func(io.Reader) (interface{}, error)); ok {

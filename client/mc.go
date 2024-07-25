@@ -49,7 +49,7 @@ type ClientIface interface {
 	GetRandomDoc(context ...*ClientContext) (*gomemcached.MCResponse, error)
 	GetSubdoc(vb uint16, key string, subPaths []string, context ...*ClientContext) (*gomemcached.MCResponse, error)
 	SetSubdoc(vb uint16, key string, ops []SubDocOp, context ...*ClientContext) (*gomemcached.MCResponse, error)
-	Hijack() memcachedConnection
+	Hijack() MemcachedConnection
 	Incr(vb uint16, key string, amt, def uint64, exp int, context ...*ClientContext) (uint64, error)
 	LastBucket() string
 	Observe(vb uint16, key string) (result ObserveResult, err error)
@@ -242,7 +242,7 @@ const (
 	FeatureHandleThrottle    = Feature(0x1b)
 )
 
-type memcachedConnection interface {
+type MemcachedConnection interface {
 	io.ReadWriteCloser
 
 	SetReadDeadline(time.Time) error
@@ -251,7 +251,7 @@ type memcachedConnection interface {
 
 // The Client itself.
 type Client struct {
-	conn memcachedConnection
+	conn MemcachedConnection
 	// use uint32 type so that it can be accessed through atomic APIs
 	healthy uint32
 	opaque  uint32
@@ -346,7 +346,7 @@ func (c *Client) getOpaque() uint32 {
 }
 
 // Wrap an existing transport.
-func Wrap(conn memcachedConnection) (rv *Client, err error) {
+func Wrap(conn MemcachedConnection) (rv *Client, err error) {
 	client := &Client{
 		conn:            conn,
 		hdrBuf:          make([]byte, gomemcached.HDR_LEN),
@@ -1852,7 +1852,7 @@ func (mc *Client) UprGetFailoverLog(vb []uint16) (map[uint16]*FailoverLog, error
 // It also marks the connection as unhealthy since the client will
 // have lost control over the connection and can't otherwise verify
 // things are in good shape for connection pools.
-func (c *Client) Hijack() memcachedConnection {
+func (c *Client) Hijack() MemcachedConnection {
 	c.setHealthy(false)
 	return c.conn
 }

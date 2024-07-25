@@ -24,6 +24,10 @@ func (_m *handler) EXPECT() *handler_Expecter {
 func (_m *handler) Execute(req *gomemcached.MCRequest, s *storage) *gomemcached.MCResponse {
 	ret := _m.Called(req, s)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Execute")
+	}
+
 	var r0 *gomemcached.MCResponse
 	if rf, ok := ret.Get(0).(func(*gomemcached.MCRequest, *storage) *gomemcached.MCResponse); ok {
 		r0 = rf(req, s)

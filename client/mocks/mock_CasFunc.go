@@ -24,6 +24,10 @@ func (_m *CasFunc) EXPECT() *CasFunc_Expecter {
 func (_m *CasFunc) Execute(current []byte) ([]byte, memcached.CasOp) {
 	ret := _m.Called(current)
 
+	if len(ret) == 0 {
+		panic("no return value specified for Execute")
+	}
+
 	var r0 []byte
 	var r1 memcached.CasOp
 	if rf, ok := ret.Get(0).(func([]byte) ([]byte, memcached.CasOp)); ok {

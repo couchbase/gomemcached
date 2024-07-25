@@ -21,6 +21,10 @@ func (_m *ScopeCreateEvent) EXPECT() *ScopeCreateEvent_Expecter {
 func (_m *ScopeCreateEvent) GetManifestId() (uint64, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetManifestId")
+	}
+
 	var r0 uint64
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (uint64, error)); ok {
@@ -72,6 +76,10 @@ func (_c *ScopeCreateEvent_GetManifestId_Call) RunAndReturn(run func() (uint64, 
 func (_m *ScopeCreateEvent) GetScopeId() (uint32, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetScopeId")
+	}
+
 	var r0 uint32
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (uint32, error)); ok {
@@ -122,6 +130,10 @@ func (_c *ScopeCreateEvent_GetScopeId_Call) RunAndReturn(run func() (uint32, err
 // GetSystemEventName provides a mock function with given fields:
 func (_m *ScopeCreateEvent) GetSystemEventName() (string, error) {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSystemEventName")
+	}
 
 	var r0 string
 	var r1 error

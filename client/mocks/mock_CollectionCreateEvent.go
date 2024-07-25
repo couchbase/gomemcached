@@ -21,6 +21,10 @@ func (_m *CollectionCreateEvent) EXPECT() *CollectionCreateEvent_Expecter {
 func (_m *CollectionCreateEvent) GetCollectionId() (uint32, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetCollectionId")
+	}
+
 	var r0 uint32
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (uint32, error)); ok {
@@ -71,6 +75,10 @@ func (_c *CollectionCreateEvent_GetCollectionId_Call) RunAndReturn(run func() (u
 // GetManifestId provides a mock function with given fields:
 func (_m *CollectionCreateEvent) GetManifestId() (uint64, error) {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetManifestId")
+	}
 
 	var r0 uint64
 	var r1 error
@@ -123,6 +131,10 @@ func (_c *CollectionCreateEvent_GetManifestId_Call) RunAndReturn(run func() (uin
 func (_m *CollectionCreateEvent) GetMaxTTL() (uint32, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetMaxTTL")
+	}
+
 	var r0 uint32
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (uint32, error)); ok {
@@ -174,6 +186,10 @@ func (_c *CollectionCreateEvent_GetMaxTTL_Call) RunAndReturn(run func() (uint32,
 func (_m *CollectionCreateEvent) GetScopeId() (uint32, error) {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetScopeId")
+	}
+
 	var r0 uint32
 	var r1 error
 	if rf, ok := ret.Get(0).(func() (uint32, error)); ok {
@@ -224,6 +240,10 @@ func (_c *CollectionCreateEvent_GetScopeId_Call) RunAndReturn(run func() (uint32
 // GetSystemEventName provides a mock function with given fields:
 func (_m *CollectionCreateEvent) GetSystemEventName() (string, error) {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSystemEventName")
+	}
 
 	var r0 string
 	var r1 error

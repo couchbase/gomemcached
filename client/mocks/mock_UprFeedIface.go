@@ -24,6 +24,10 @@ func (_m *UprFeedIface) EXPECT() *UprFeedIface_Expecter {
 func (_m *UprFeedIface) ClientAck(event *memcached.UprEvent) error {
 	ret := _m.Called(event)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ClientAck")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*memcached.UprEvent) error); ok {
 		r0 = rf(event)
@@ -98,6 +102,10 @@ func (_c *UprFeedIface_Close_Call) RunAndReturn(run func()) *UprFeedIface_Close_
 func (_m *UprFeedIface) CloseStream(vbno uint16, opaqueMSB uint16) error {
 	ret := _m.Called(vbno, opaqueMSB)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CloseStream")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(uint16, uint16) error); ok {
 		r0 = rf(vbno, opaqueMSB)
@@ -141,6 +149,10 @@ func (_c *UprFeedIface_CloseStream_Call) RunAndReturn(run func(uint16, uint16) e
 func (_m *UprFeedIface) Closed() bool {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for Closed")
+	}
+
 	var r0 bool
 	if rf, ok := ret.Get(0).(func() bool); ok {
 		r0 = rf()
@@ -182,6 +194,10 @@ func (_c *UprFeedIface_Closed_Call) RunAndReturn(run func() bool) *UprFeedIface_
 func (_m *UprFeedIface) GetError() error {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetError")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
@@ -222,6 +238,10 @@ func (_c *UprFeedIface_GetError_Call) RunAndReturn(run func() error) *UprFeedIfa
 // GetUprEventCh provides a mock function with given fields:
 func (_m *UprFeedIface) GetUprEventCh() <-chan *memcached.UprEvent {
 	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUprEventCh")
+	}
 
 	var r0 <-chan *memcached.UprEvent
 	if rf, ok := ret.Get(0).(func() <-chan *memcached.UprEvent); ok {
@@ -266,6 +286,10 @@ func (_c *UprFeedIface_GetUprEventCh_Call) RunAndReturn(run func() <-chan *memca
 func (_m *UprFeedIface) GetUprStats() *memcached.UprStats {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetUprStats")
+	}
+
 	var r0 *memcached.UprStats
 	if rf, ok := ret.Get(0).(func() *memcached.UprStats); ok {
 		r0 = rf()
@@ -309,6 +333,10 @@ func (_c *UprFeedIface_GetUprStats_Call) RunAndReturn(run func() *memcached.UprS
 func (_m *UprFeedIface) SetPriorityAsync(p memcached.PriorityType) error {
 	ret := _m.Called(p)
 
+	if len(ret) == 0 {
+		panic("no return value specified for SetPriorityAsync")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(memcached.PriorityType) error); ok {
 		r0 = rf(p)
@@ -351,6 +379,10 @@ func (_c *UprFeedIface_SetPriorityAsync_Call) RunAndReturn(run func(memcached.Pr
 func (_m *UprFeedIface) StartFeed() error {
 	ret := _m.Called()
 
+	if len(ret) == 0 {
+		panic("no return value specified for StartFeed")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
@@ -391,6 +423,10 @@ func (_c *UprFeedIface_StartFeed_Call) RunAndReturn(run func() error) *UprFeedIf
 // StartFeedWithConfig provides a mock function with given fields: datachan_len
 func (_m *UprFeedIface) StartFeedWithConfig(datachan_len int) error {
 	ret := _m.Called(datachan_len)
+
+	if len(ret) == 0 {
+		panic("no return value specified for StartFeedWithConfig")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(int) error); ok {
@@ -433,6 +469,10 @@ func (_c *UprFeedIface_StartFeedWithConfig_Call) RunAndReturn(run func(int) erro
 // UprOpen provides a mock function with given fields: name, sequence, bufSize
 func (_m *UprFeedIface) UprOpen(name string, sequence uint32, bufSize uint32) error {
 	ret := _m.Called(name, sequence, bufSize)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UprOpen")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, uint32, uint32) error); ok {
@@ -477,6 +517,10 @@ func (_c *UprFeedIface_UprOpen_Call) RunAndReturn(run func(string, uint32, uint3
 // UprOpenWithFeatures provides a mock function with given fields: name, sequence, bufSize, features
 func (_m *UprFeedIface) UprOpenWithFeatures(name string, sequence uint32, bufSize uint32, features memcached.UprFeatures) (error, memcached.UprFeatures) {
 	ret := _m.Called(name, sequence, bufSize, features)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UprOpenWithFeatures")
+	}
 
 	var r0 error
 	var r1 memcached.UprFeatures
@@ -533,6 +577,10 @@ func (_c *UprFeedIface_UprOpenWithFeatures_Call) RunAndReturn(run func(string, u
 func (_m *UprFeedIface) UprOpenWithXATTR(name string, sequence uint32, bufSize uint32) error {
 	ret := _m.Called(name, sequence, bufSize)
 
+	if len(ret) == 0 {
+		panic("no return value specified for UprOpenWithXATTR")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, uint32, uint32) error); ok {
 		r0 = rf(name, sequence, bufSize)
@@ -576,6 +624,10 @@ func (_c *UprFeedIface_UprOpenWithXATTR_Call) RunAndReturn(run func(string, uint
 // UprRequestCollectionsStream provides a mock function with given fields: vbno, opaqueMSB, flags, vbuuid, startSeq, endSeq, snapStart, snapEnd, filter
 func (_m *UprFeedIface) UprRequestCollectionsStream(vbno uint16, opaqueMSB uint16, flags uint32, vbuuid uint64, startSeq uint64, endSeq uint64, snapStart uint64, snapEnd uint64, filter *memcached.CollectionsFilter) error {
 	ret := _m.Called(vbno, opaqueMSB, flags, vbuuid, startSeq, endSeq, snapStart, snapEnd, filter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UprRequestCollectionsStream")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(uint16, uint16, uint32, uint64, uint64, uint64, uint64, uint64, *memcached.CollectionsFilter) error); ok {
@@ -626,6 +678,10 @@ func (_c *UprFeedIface_UprRequestCollectionsStream_Call) RunAndReturn(run func(u
 // UprRequestStream provides a mock function with given fields: vbno, opaqueMSB, flags, vuuid, startSequence, endSequence, snapStart, snapEnd
 func (_m *UprFeedIface) UprRequestStream(vbno uint16, opaqueMSB uint16, flags uint32, vuuid uint64, startSequence uint64, endSequence uint64, snapStart uint64, snapEnd uint64) error {
 	ret := _m.Called(vbno, opaqueMSB, flags, vuuid, startSequence, endSequence, snapStart, snapEnd)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UprRequestStream")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(uint16, uint16, uint32, uint64, uint64, uint64, uint64, uint64) error); ok {
