@@ -3051,14 +3051,14 @@ func (_c *ClientIface_SetReplica_Call) RunAndReturn(run func(bool)) *ClientIface
 	return _c
 }
 
-// SetSubdoc provides a mock function with given fields: vb, key, ops, context
-func (_m *ClientIface) SetSubdoc(vb uint16, key string, ops []memcached.SubDocOp, context ...*memcached.ClientContext) (*gomemcached.MCResponse, error) {
+// SetSubdoc provides a mock function with given fields: vb, key, ops, addOnly, exp, cas, context
+func (_m *ClientIface) SetSubdoc(vb uint16, key string, ops []memcached.SubDocOp, addOnly bool, exp int, cas uint64, context ...*memcached.ClientContext) (*gomemcached.MCResponse, error) {
 	_va := make([]interface{}, len(context))
 	for _i := range context {
 		_va[_i] = context[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, vb, key, ops)
+	_ca = append(_ca, vb, key, ops, addOnly, exp, cas)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -3068,19 +3068,19 @@ func (_m *ClientIface) SetSubdoc(vb uint16, key string, ops []memcached.SubDocOp
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(uint16, string, []memcached.SubDocOp, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
-		return rf(vb, key, ops, context...)
+	if rf, ok := ret.Get(0).(func(uint16, string, []memcached.SubDocOp, bool, int, uint64, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
+		return rf(vb, key, ops, addOnly, exp, cas, context...)
 	}
-	if rf, ok := ret.Get(0).(func(uint16, string, []memcached.SubDocOp, ...*memcached.ClientContext) *gomemcached.MCResponse); ok {
-		r0 = rf(vb, key, ops, context...)
+	if rf, ok := ret.Get(0).(func(uint16, string, []memcached.SubDocOp, bool, int, uint64, ...*memcached.ClientContext) *gomemcached.MCResponse); ok {
+		r0 = rf(vb, key, ops, addOnly, exp, cas, context...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*gomemcached.MCResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(uint16, string, []memcached.SubDocOp, ...*memcached.ClientContext) error); ok {
-		r1 = rf(vb, key, ops, context...)
+	if rf, ok := ret.Get(1).(func(uint16, string, []memcached.SubDocOp, bool, int, uint64, ...*memcached.ClientContext) error); ok {
+		r1 = rf(vb, key, ops, addOnly, exp, cas, context...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3097,21 +3097,24 @@ type ClientIface_SetSubdoc_Call struct {
 //   - vb uint16
 //   - key string
 //   - ops []memcached.SubDocOp
+//   - addOnly bool
+//   - exp int
+//   - cas uint64
 //   - context ...*memcached.ClientContext
-func (_e *ClientIface_Expecter) SetSubdoc(vb interface{}, key interface{}, ops interface{}, context ...interface{}) *ClientIface_SetSubdoc_Call {
+func (_e *ClientIface_Expecter) SetSubdoc(vb interface{}, key interface{}, ops interface{}, addOnly interface{}, exp interface{}, cas interface{}, context ...interface{}) *ClientIface_SetSubdoc_Call {
 	return &ClientIface_SetSubdoc_Call{Call: _e.mock.On("SetSubdoc",
-		append([]interface{}{vb, key, ops}, context...)...)}
+		append([]interface{}{vb, key, ops, addOnly, exp, cas}, context...)...)}
 }
 
-func (_c *ClientIface_SetSubdoc_Call) Run(run func(vb uint16, key string, ops []memcached.SubDocOp, context ...*memcached.ClientContext)) *ClientIface_SetSubdoc_Call {
+func (_c *ClientIface_SetSubdoc_Call) Run(run func(vb uint16, key string, ops []memcached.SubDocOp, addOnly bool, exp int, cas uint64, context ...*memcached.ClientContext)) *ClientIface_SetSubdoc_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]*memcached.ClientContext, len(args)-3)
-		for i, a := range args[3:] {
+		variadicArgs := make([]*memcached.ClientContext, len(args)-6)
+		for i, a := range args[6:] {
 			if a != nil {
 				variadicArgs[i] = a.(*memcached.ClientContext)
 			}
 		}
-		run(args[0].(uint16), args[1].(string), args[2].([]memcached.SubDocOp), variadicArgs...)
+		run(args[0].(uint16), args[1].(string), args[2].([]memcached.SubDocOp), args[3].(bool), args[4].(int), args[5].(uint64), variadicArgs...)
 	})
 	return _c
 }
@@ -3121,7 +3124,7 @@ func (_c *ClientIface_SetSubdoc_Call) Return(_a0 *gomemcached.MCResponse, _a1 er
 	return _c
 }
 
-func (_c *ClientIface_SetSubdoc_Call) RunAndReturn(run func(uint16, string, []memcached.SubDocOp, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)) *ClientIface_SetSubdoc_Call {
+func (_c *ClientIface_SetSubdoc_Call) RunAndReturn(run func(uint16, string, []memcached.SubDocOp, bool, int, uint64, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)) *ClientIface_SetSubdoc_Call {
 	_c.Call.Return(run)
 	return _c
 }
