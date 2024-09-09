@@ -84,10 +84,9 @@ type ClientIface interface {
 	NewUprFeedWithConfig(ackByClient bool) (*UprFeed, error)
 	NewUprFeedWithConfigIface(ackByClient bool) (UprFeedIface, error)
 
-	CreateRangeScan(vb uint16, collId uint32, start []byte, excludeStart bool, end []byte, excludeEnd bool, withDocs bool,
+	CreateRangeScan(vb uint16, start []byte, excludeStart bool, end []byte, excludeEnd bool, withDocs bool,
 		context ...*ClientContext) (*gomemcached.MCResponse, error)
-	CreateRandomScan(vb uint16, collId uint32, sampleSize int, withDocs bool, context ...*ClientContext) (
-		*gomemcached.MCResponse, error)
+	CreateRandomScan(vb uint16, sampleSize int, withDocs bool, context ...*ClientContext) (*gomemcached.MCResponse, error)
 	ContinueRangeScan(vb uint16, uuid []byte, opaque uint32, items uint32, maxSize uint32, timeout uint32,
 		context ...*ClientContext) error
 	CancelRangeScan(vb uint16, uuid []byte, opaque uint32, context ...*ClientContext) (*gomemcached.MCResponse, error)
@@ -122,6 +121,9 @@ type ClientContext struct {
 
 	// Sub-doc paths are document fields (not XATTRs)
 	DocumentSubDocPaths bool
+
+	// Include XATTRs in random document retrieval
+	IncludeXATTRs bool
 }
 
 func (this *ClientContext) Copy() *ClientContext {
@@ -627,6 +629,7 @@ func (c *Client) setContext(req *gomemcached.MCRequest, context ...*ClientContex
 func (c *Client) setExtrasContext(req *gomemcached.MCRequest, context ...*ClientContext) error {
 	collectionId := uint32(0)
 	req.UserLen = 0
+	xattrs := false
 	if len(context) > 0 {
 		collectionId = context[0].CollId
 		uLen := len(context[0].User)
@@ -634,6 +637,7 @@ func (c *Client) setExtrasContext(req *gomemcached.MCRequest, context ...*Client
 			req.UserLen = uLen
 			copy(req.Username[:], context[0].User)
 		}
+		xattrs = context[0].IncludeXATTRs
 	}
 
 	// if the optional collection is specified, it must be default for clients that haven't turned on collections
@@ -642,7 +646,12 @@ func (c *Client) setExtrasContext(req *gomemcached.MCRequest, context ...*Client
 			return fmt.Errorf("Client does not use collections but a collection was specified")
 		}
 	} else {
-		req.Extras = make([]byte, 4)
+		if xattrs {
+			req.Extras = make([]byte, 5)
+			req.Extras[4] = 0x1 // protocol specifies only != 0
+		} else {
+			req.Extras = make([]byte, 4)
+		}
 		binary.BigEndian.PutUint32(req.Extras, collectionId)
 	}
 	return nil
@@ -1306,7 +1315,7 @@ func GetSubDocVal(subPaths []string, context []*ClientContext) (extraBuf, valueB
 	return
 }
 
-func (c *Client) CreateRangeScan(vb uint16, collId uint32, start []byte, excludeStart bool, end []byte, excludeEnd bool,
+func (c *Client) CreateRangeScan(vb uint16, start []byte, excludeStart bool, end []byte, excludeEnd bool,
 	withDocs bool, context ...*ClientContext) (*gomemcached.MCResponse, error) {
 
 	req := &gomemcached.MCRequest{
@@ -1320,6 +1329,12 @@ func (c *Client) CreateRangeScan(vb uint16, collId uint32, start []byte, exclude
 		return nil, err
 	}
 
+	collId := uint32(0)
+	xattrs := false
+	if len(context) > 0 {
+		collId = context[0].CollId
+		xattrs = withDocs && context[0].IncludeXATTRs
+	}
 	req.CollIdLen = 0 // has to be 0 else op is rejected
 	r := make(map[string]interface{})
 	if excludeStart {
@@ -1341,13 +1356,16 @@ func (c *Client) CreateRangeScan(vb uint16, collId uint32, start []byte, exclude
 		m["key_only"] = true
 	}
 	m["range"] = r
+	if xattrs {
+		m["include_xattrs"] = true
+	}
 	req.Body, _ = json.Marshal(m)
 
 	c.opaque++
 	return c.Send(req)
 }
 
-func (c *Client) CreateRandomScan(vb uint16, collId uint32, sampleSize int, withDocs bool, context ...*ClientContext) (
+func (c *Client) CreateRandomScan(vb uint16, sampleSize int, withDocs bool, context ...*ClientContext) (
 	*gomemcached.MCResponse, error) {
 
 	req := &gomemcached.MCRequest{
@@ -1361,6 +1379,12 @@ func (c *Client) CreateRandomScan(vb uint16, collId uint32, sampleSize int, with
 		return nil, err
 	}
 
+	collId := uint32(0)
+	xattrs := false
+	if len(context) > 0 {
+		collId = context[0].CollId
+		xattrs = withDocs && context[0].IncludeXATTRs
+	}
 	req.CollIdLen = 0 // has to be 0 else op is rejected
 	s := make(map[string]interface{})
 	seed := uint32(rand.Int())
@@ -1378,6 +1402,9 @@ func (c *Client) CreateRandomScan(vb uint16, collId uint32, sampleSize int, with
 		m["key_only"] = true
 	}
 	m["sampling"] = s
+	if xattrs {
+		m["include_xattrs"] = true
+	}
 	req.Body, _ = json.Marshal(m)
 
 	c.opaque++
