@@ -48,7 +48,8 @@ type ClientIface interface {
 	GetMeta(vb uint16, key string, context ...*ClientContext) (*gomemcached.MCResponse, error)
 	GetRandomDoc(context ...*ClientContext) (*gomemcached.MCResponse, error)
 	GetSubdoc(vb uint16, key string, subPaths []string, context ...*ClientContext) (*gomemcached.MCResponse, error)
-	SetSubdoc(vb uint16, key string, ops []SubDocOp, context ...*ClientContext) (*gomemcached.MCResponse, error)
+	SetSubdoc(vb uint16, key string, ops []SubDocOp, addOnly bool, exp int, cas uint64, context ...*ClientContext) (
+		*gomemcached.MCResponse, error)
 	Hijack() MemcachedConnection
 	Incr(vb uint16, key string, amt, def uint64, exp int, context ...*ClientContext) (uint64, error)
 	LastBucket() string
@@ -64,7 +65,8 @@ type ClientIface interface {
 	SetDeadline(t time.Time)
 	SetReplica(r bool)
 	SelectBucket(bucket string) (*gomemcached.MCResponse, error)
-	SetCas(vb uint16, key string, flags int, exp int, cas uint64, body []byte, context ...*ClientContext) (*gomemcached.MCResponse, error)
+	SetCas(vb uint16, key string, flags int, exp int, cas uint64, body []byte, context ...*ClientContext) (
+		*gomemcached.MCResponse, error)
 	Stats(key string) ([]StatValue, error)
 	StatsFunc(key string, fn func(key, val []byte)) error
 	StatsMap(key string) (map[string]string, error)
@@ -198,6 +200,10 @@ func (this *SubDocOp) encodedLength() int {
 func (this *SubDocOp) encode(buf []byte) []byte {
 	if this.Counter {
 		buf = append(buf, byte(gomemcached.SUBDOC_COUNTER))
+	} else if this.Value == nil {
+		buf = append(buf, byte(gomemcached.SUBDOC_DELETE))
+	} else if this.Path == "" && !this.Xattr {
+		buf = append(buf, byte(gomemcached.SET))
 	} else {
 		buf = append(buf, byte(gomemcached.SUBDOC_DICT_UPSERT))
 	}
@@ -213,7 +219,9 @@ func (this *SubDocOp) encode(buf []byte) []byte {
 	buf = binary.BigEndian.AppendUint32(buf, uint32(len(this.Value)))
 
 	buf = append(buf, pathBytes...)
-	buf = append(buf, this.Value...)
+	if this.Value != nil {
+		buf = append(buf, this.Value...)
+	}
 
 	return buf
 }
@@ -707,7 +715,7 @@ func (c *Client) GetSubdoc(vb uint16, key string, subPaths []string, context ...
 	return res, nil
 }
 
-func (c *Client) SetSubdoc(vb uint16, key string, ops []SubDocOp, context ...*ClientContext) (
+func (c *Client) SetSubdoc(vb uint16, key string, ops []SubDocOp, addOnly bool, exp int, cas uint64, context ...*ClientContext) (
 	*gomemcached.MCResponse, error) {
 
 	if len(ops) == 0 {
@@ -719,7 +727,11 @@ func (c *Client) SetSubdoc(vb uint16, key string, ops []SubDocOp, context ...*Cl
 		totalBytesLen += ops[i].encodedLength()
 	}
 	valueBuf := make([]byte, 0, totalBytesLen)
+	del := false
 	for i := range ops {
+		if ops[i].Value == nil {
+			del = true
+		}
 		valueBuf = ops[i].encode(valueBuf)
 	}
 
@@ -727,13 +739,22 @@ func (c *Client) SetSubdoc(vb uint16, key string, ops []SubDocOp, context ...*Cl
 		Opcode:  gomemcached.SUBDOC_MULTI_MUTATION,
 		VBucket: vb,
 		Key:     []byte(key),
-		Extras:  nil,
+		Extras:  []byte{0, 0, 0, 0, 0},
 		Body:    valueBuf,
 		Opaque:  c.getOpaque(),
+		Cas:     cas,
 	}
 	err := c.setContext(req, context...)
 	if err != nil {
 		return nil, err
+	}
+	binary.BigEndian.PutUint32(req.Extras, uint32(exp))
+	if !del {
+		if addOnly {
+			req.Extras[4] = gomemcached.SUBDOC_FLAG_ADD
+		} else {
+			req.Extras[4] = gomemcached.SUBDOC_FLAG_MKDOC
+		}
 	}
 
 	res, err := c.Send(req)
