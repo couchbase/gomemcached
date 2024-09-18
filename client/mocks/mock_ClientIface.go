@@ -810,14 +810,14 @@ func (_c *ClientIface_ContinueRangeScan_Call) RunAndReturn(run func(uint16, []by
 	return _c
 }
 
-// CreateRandomScan provides a mock function with given fields: vb, collId, sampleSize, withDocs, context
-func (_m *ClientIface) CreateRandomScan(vb uint16, collId uint32, sampleSize int, withDocs bool, context ...*memcached.ClientContext) (*gomemcached.MCResponse, error) {
+// CreateRandomScan provides a mock function with given fields: vb, sampleSize, withDocs, context
+func (_m *ClientIface) CreateRandomScan(vb uint16, sampleSize int, withDocs bool, context ...*memcached.ClientContext) (*gomemcached.MCResponse, error) {
 	_va := make([]interface{}, len(context))
 	for _i := range context {
 		_va[_i] = context[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, vb, collId, sampleSize, withDocs)
+	_ca = append(_ca, vb, sampleSize, withDocs)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -827,19 +827,19 @@ func (_m *ClientIface) CreateRandomScan(vb uint16, collId uint32, sampleSize int
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(uint16, uint32, int, bool, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
-		return rf(vb, collId, sampleSize, withDocs, context...)
+	if rf, ok := ret.Get(0).(func(uint16, int, bool, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
+		return rf(vb, sampleSize, withDocs, context...)
 	}
-	if rf, ok := ret.Get(0).(func(uint16, uint32, int, bool, ...*memcached.ClientContext) *gomemcached.MCResponse); ok {
-		r0 = rf(vb, collId, sampleSize, withDocs, context...)
+	if rf, ok := ret.Get(0).(func(uint16, int, bool, ...*memcached.ClientContext) *gomemcached.MCResponse); ok {
+		r0 = rf(vb, sampleSize, withDocs, context...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*gomemcached.MCResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(uint16, uint32, int, bool, ...*memcached.ClientContext) error); ok {
-		r1 = rf(vb, collId, sampleSize, withDocs, context...)
+	if rf, ok := ret.Get(1).(func(uint16, int, bool, ...*memcached.ClientContext) error); ok {
+		r1 = rf(vb, sampleSize, withDocs, context...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -854,24 +854,23 @@ type ClientIface_CreateRandomScan_Call struct {
 
 // CreateRandomScan is a helper method to define mock.On call
 //   - vb uint16
-//   - collId uint32
 //   - sampleSize int
 //   - withDocs bool
 //   - context ...*memcached.ClientContext
-func (_e *ClientIface_Expecter) CreateRandomScan(vb interface{}, collId interface{}, sampleSize interface{}, withDocs interface{}, context ...interface{}) *ClientIface_CreateRandomScan_Call {
+func (_e *ClientIface_Expecter) CreateRandomScan(vb interface{}, sampleSize interface{}, withDocs interface{}, context ...interface{}) *ClientIface_CreateRandomScan_Call {
 	return &ClientIface_CreateRandomScan_Call{Call: _e.mock.On("CreateRandomScan",
-		append([]interface{}{vb, collId, sampleSize, withDocs}, context...)...)}
+		append([]interface{}{vb, sampleSize, withDocs}, context...)...)}
 }
 
-func (_c *ClientIface_CreateRandomScan_Call) Run(run func(vb uint16, collId uint32, sampleSize int, withDocs bool, context ...*memcached.ClientContext)) *ClientIface_CreateRandomScan_Call {
+func (_c *ClientIface_CreateRandomScan_Call) Run(run func(vb uint16, sampleSize int, withDocs bool, context ...*memcached.ClientContext)) *ClientIface_CreateRandomScan_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]*memcached.ClientContext, len(args)-4)
-		for i, a := range args[4:] {
+		variadicArgs := make([]*memcached.ClientContext, len(args)-3)
+		for i, a := range args[3:] {
 			if a != nil {
 				variadicArgs[i] = a.(*memcached.ClientContext)
 			}
 		}
-		run(args[0].(uint16), args[1].(uint32), args[2].(int), args[3].(bool), variadicArgs...)
+		run(args[0].(uint16), args[1].(int), args[2].(bool), variadicArgs...)
 	})
 	return _c
 }
@@ -881,19 +880,19 @@ func (_c *ClientIface_CreateRandomScan_Call) Return(_a0 *gomemcached.MCResponse,
 	return _c
 }
 
-func (_c *ClientIface_CreateRandomScan_Call) RunAndReturn(run func(uint16, uint32, int, bool, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)) *ClientIface_CreateRandomScan_Call {
+func (_c *ClientIface_CreateRandomScan_Call) RunAndReturn(run func(uint16, int, bool, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)) *ClientIface_CreateRandomScan_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// CreateRangeScan provides a mock function with given fields: vb, collId, start, excludeStart, end, excludeEnd, withDocs, context
-func (_m *ClientIface) CreateRangeScan(vb uint16, collId uint32, start []byte, excludeStart bool, end []byte, excludeEnd bool, withDocs bool, context ...*memcached.ClientContext) (*gomemcached.MCResponse, error) {
+// CreateRangeScan provides a mock function with given fields: vb, start, excludeStart, end, excludeEnd, withDocs, context
+func (_m *ClientIface) CreateRangeScan(vb uint16, start []byte, excludeStart bool, end []byte, excludeEnd bool, withDocs bool, context ...*memcached.ClientContext) (*gomemcached.MCResponse, error) {
 	_va := make([]interface{}, len(context))
 	for _i := range context {
 		_va[_i] = context[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, vb, collId, start, excludeStart, end, excludeEnd, withDocs)
+	_ca = append(_ca, vb, start, excludeStart, end, excludeEnd, withDocs)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -903,19 +902,19 @@ func (_m *ClientIface) CreateRangeScan(vb uint16, collId uint32, start []byte, e
 
 	var r0 *gomemcached.MCResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(uint16, uint32, []byte, bool, []byte, bool, bool, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
-		return rf(vb, collId, start, excludeStart, end, excludeEnd, withDocs, context...)
+	if rf, ok := ret.Get(0).(func(uint16, []byte, bool, []byte, bool, bool, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)); ok {
+		return rf(vb, start, excludeStart, end, excludeEnd, withDocs, context...)
 	}
-	if rf, ok := ret.Get(0).(func(uint16, uint32, []byte, bool, []byte, bool, bool, ...*memcached.ClientContext) *gomemcached.MCResponse); ok {
-		r0 = rf(vb, collId, start, excludeStart, end, excludeEnd, withDocs, context...)
+	if rf, ok := ret.Get(0).(func(uint16, []byte, bool, []byte, bool, bool, ...*memcached.ClientContext) *gomemcached.MCResponse); ok {
+		r0 = rf(vb, start, excludeStart, end, excludeEnd, withDocs, context...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*gomemcached.MCResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(uint16, uint32, []byte, bool, []byte, bool, bool, ...*memcached.ClientContext) error); ok {
-		r1 = rf(vb, collId, start, excludeStart, end, excludeEnd, withDocs, context...)
+	if rf, ok := ret.Get(1).(func(uint16, []byte, bool, []byte, bool, bool, ...*memcached.ClientContext) error); ok {
+		r1 = rf(vb, start, excludeStart, end, excludeEnd, withDocs, context...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -930,27 +929,26 @@ type ClientIface_CreateRangeScan_Call struct {
 
 // CreateRangeScan is a helper method to define mock.On call
 //   - vb uint16
-//   - collId uint32
 //   - start []byte
 //   - excludeStart bool
 //   - end []byte
 //   - excludeEnd bool
 //   - withDocs bool
 //   - context ...*memcached.ClientContext
-func (_e *ClientIface_Expecter) CreateRangeScan(vb interface{}, collId interface{}, start interface{}, excludeStart interface{}, end interface{}, excludeEnd interface{}, withDocs interface{}, context ...interface{}) *ClientIface_CreateRangeScan_Call {
+func (_e *ClientIface_Expecter) CreateRangeScan(vb interface{}, start interface{}, excludeStart interface{}, end interface{}, excludeEnd interface{}, withDocs interface{}, context ...interface{}) *ClientIface_CreateRangeScan_Call {
 	return &ClientIface_CreateRangeScan_Call{Call: _e.mock.On("CreateRangeScan",
-		append([]interface{}{vb, collId, start, excludeStart, end, excludeEnd, withDocs}, context...)...)}
+		append([]interface{}{vb, start, excludeStart, end, excludeEnd, withDocs}, context...)...)}
 }
 
-func (_c *ClientIface_CreateRangeScan_Call) Run(run func(vb uint16, collId uint32, start []byte, excludeStart bool, end []byte, excludeEnd bool, withDocs bool, context ...*memcached.ClientContext)) *ClientIface_CreateRangeScan_Call {
+func (_c *ClientIface_CreateRangeScan_Call) Run(run func(vb uint16, start []byte, excludeStart bool, end []byte, excludeEnd bool, withDocs bool, context ...*memcached.ClientContext)) *ClientIface_CreateRangeScan_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]*memcached.ClientContext, len(args)-7)
-		for i, a := range args[7:] {
+		variadicArgs := make([]*memcached.ClientContext, len(args)-6)
+		for i, a := range args[6:] {
 			if a != nil {
 				variadicArgs[i] = a.(*memcached.ClientContext)
 			}
 		}
-		run(args[0].(uint16), args[1].(uint32), args[2].([]byte), args[3].(bool), args[4].([]byte), args[5].(bool), args[6].(bool), variadicArgs...)
+		run(args[0].(uint16), args[1].([]byte), args[2].(bool), args[3].([]byte), args[4].(bool), args[5].(bool), variadicArgs...)
 	})
 	return _c
 }
@@ -960,7 +958,7 @@ func (_c *ClientIface_CreateRangeScan_Call) Return(_a0 *gomemcached.MCResponse, 
 	return _c
 }
 
-func (_c *ClientIface_CreateRangeScan_Call) RunAndReturn(run func(uint16, uint32, []byte, bool, []byte, bool, bool, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)) *ClientIface_CreateRangeScan_Call {
+func (_c *ClientIface_CreateRangeScan_Call) RunAndReturn(run func(uint16, []byte, bool, []byte, bool, bool, ...*memcached.ClientContext) (*gomemcached.MCResponse, error)) *ClientIface_CreateRangeScan_Call {
 	_c.Call.Return(run)
 	return _c
 }
