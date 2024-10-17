@@ -271,7 +271,7 @@ func (negotiator *vbStreamNegotiator) handleStreamRequest(feed *UprFeed,
 		}
 		negotiator.deleteStreamFromMap(vbno, opaque)
 	}
-	return event, nil
+	return event, err
 }
 
 func (negotiator *vbStreamNegotiator) cleanUpVbStreams(vbno uint16) {
