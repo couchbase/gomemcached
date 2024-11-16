@@ -242,11 +242,11 @@ const (
 	FeatureXattr             = Feature(0x06)
 	FeatureXerror            = Feature(0x07)
 	FeatureSnappyCompression = Feature(0x0a)
-	FeatureDataType          = Feature(0x0b)
+	FeatureDataType          = Feature(0x0b) // This is named as JSON in kv_engine's feature.h
 	FeatureTracing           = Feature(0x0f)
 	FeatureSyncReplication   = Feature(0x11)
 	FeatureCollections       = Feature(0x12)
-	FeatureOpenTracing       = Feature(0x13)
+	FeatureSnappyEverywhere  = Feature(0x13)
 	FeaturePreserveExpiry    = Feature(0x14)
 	FeatureComputeUnits      = Feature(0x1a)
 	FeatureHandleThrottle    = Feature(0x1b)
