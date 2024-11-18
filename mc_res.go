@@ -25,6 +25,7 @@ type MCResponse struct {
 	DataType uint8
 
 	recycleFunc func()
+	recycleOnce sync.Once
 }
 
 // A debugging string representation of this response
@@ -285,7 +286,9 @@ func (res *MCResponse) ComputeUnits() (ru uint64, wu uint64) {
 
 func (res *MCResponse) Recycle() {
 	if res != nil && res.recycleFunc != nil {
-		res.recycleFunc()
+		res.recycleOnce.Do(func() {
+			res.recycleFunc()
+		})
 	}
 }
 
