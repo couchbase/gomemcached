@@ -80,6 +80,11 @@ const (
 	TAP_CHECKPOINT_END   = CommandCode(0x47) // Notifies end of checkpoint
 	GET_ALL_VB_SEQNOS    = CommandCode(0x48) // Get current high sequence numbers from all vbuckets located on the server
 
+	// Like GET, but returns the document with the entire xattr section prefixed.
+	// Needs JSON, XATTR and SnappyEverywhere features enabled in the server.
+	GETEX         = CommandCode(0x49)
+	GETEX_REPLICA = CommandCode(0x4a)
+
 	UPR_OPEN        = CommandCode(0x50) // Open a UPR connection with a name
 	UPR_ADDSTREAM   = CommandCode(0x51) // Sent by ebucketMigrator to UPR Consumer
 	UPR_CLOSESTREAM = CommandCode(0x52) // Sent by eBucketMigrator to UPR Consumer
