@@ -1,0 +1,112 @@
+//
+//     Copyright 2019-Present Couchbase, Inc.
+//
+//   Use of this software is governed by the Business Source License included
+//   in the file licenses/BSL-Couchbase.txt.  As of the Change Date specified
+//   in that file, in accordance with the Business Source License, use of this
+//   software will be governed by the Apache License, Version 2.0, included in
+//   the file licenses/APL2.txt.
+//
+
+namespace systemevents;
+
+// NOTE: The below contents have been copied from
+// https://github.com/couchbase/kv_engine/blob/ba7dd2e8e1ad65702cfeeb949e82a36c30fab268/engines/ep/src/collections/events.fbs
+//
+// The namespace has been changed to "systemevents" above to follow gomemcached's file structure.
+// However the below schema definitions have been copied as is.
+//
+// In the event of schema changes in the source file linked above, use the following steps to update the FlatBuffers generated code:
+//  1. Update the schema definitions below as per the source file
+//  2. From the current directory, run `flatc --go -o ./ ./system_events.fbs`
+
+// Schema for the value of collection system events
+// This represents the data that is stored on disk as the value of a system
+// event and what is sent by DCP for connections enabling FlatBuffers.
+
+// FlatBuffers SystemEvents: This is the structure used by BeginCollection and
+// ModifyCollection
+table Collection {
+    // The following fields all exist with the "epoch" of collections, 7.0+
+    uid:ulong;
+    scopeId:uint;
+    collectionId:uint;
+    ttlValid:bool;
+    maxTtl:uint;
+    name:string;
+    // All fields after here are added from 7.2
+    //
+    // history: MB-54516: added in neo (7.2) branch. If this field is not part
+    // of a Collection structure it is defaulted to false.
+    history:bool = false;
+
+    // All fields after here are added from 7.2.4
+    //
+    // defaultCollectionMVS: MB-59452: This field exists to assist in the
+    // tracking of what is the max-visible seqno of the default collection. This
+    // field is only written to when the event is a modification of the default
+    // collection and serves no purpose outside of KV-engine.
+    defaultCollectionMVS:ulong = 0;
+
+    // All fields after here are added from 7.6
+    //
+    // metered: MB-51979: The default is false - for all collections which exist
+    // and didn't define this value, metering must be enabled only by a change
+    // pushed from ns_server
+    metered:bool = false;
+
+    // All fields after here are added from 8.0
+    // flushUid: MB-41351 The default is 0 - for all collections which existed
+    // and didn't define this value they could not be flushed and 0 is the
+    // correct default to detect subsequent flushes.
+    flushUid:ulong = 0;
+
+    // Warning: When merging/changing the tables. Always check all callers to
+    // Collections::VB::CreateCollection and check that parameters are ordered
+    // correctly - this is critical if inserting a field before another and when
+    // the fields define a default value. Note that the default values become
+    // default parameters and it's too easy to get the order wrong and for the
+    // compiler to happily allow an int/bool in the wrong place.
+}
+
+// FlatBuffers SystemEvents: This is the structure used by DropCollection
+table DroppedCollection {
+    // The following fields all exist with the "epoch" of collections, 7.0+
+    uid:ulong;
+    scopeId:uint;
+    collectionId:uint;
+
+    // All fields after here are added from 7.6
+    //
+    // systemCollection: Required so we can determine how to evaluate this event
+    // for DCP streams with no system collection privileges. This defaults to
+    // false, all collections before 7.6 will not be system collections.
+    systemCollection:bool = false;
+}
+
+// FlatBuffers SystemEvents: This is the structure used by CreateScope
+table Scope {
+    // The following fields all exist with the "epoch" of collections, 7.0+
+    uid:ulong;
+    scopeId:uint;
+    name:string;
+}
+
+// FlatBuffers SystemEvents: This is the structure used by DropScope
+table DroppedScope {
+    // The following fields all exist with the "epoch" of collections, 7.0+
+    uid:ulong;
+    scopeId:uint;
+
+    // All fields after here are added from 7.6
+    //
+    // systemScope: Required so we can determine how to evaluate this event
+    // for DCP streams with no system collection privileges. This defaults to
+    // false, all scopes before 7.6 will not be system scopes.
+    systemScope:bool = false;
+}
+
+root_type Collection;
+root_type DroppedCollection;
+root_type Scope;
+root_type DroppedScope;
