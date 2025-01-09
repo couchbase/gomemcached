@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/couchbase/gomemcached"
+	"github.com/couchbase/gomemcached/internal/flatbuffers/systemevents"
 )
 
 type SystemEventType int
@@ -240,8 +241,7 @@ func (event *UprEvent) PopulateEvent(extras []byte) {
 
 	event.Seqno = binary.BigEndian.Uint64(extras[:8])
 	event.SystemEvent = SystemEventType(binary.BigEndian.Uint32(extras[8:12]))
-	var versionTemp uint16 = binary.BigEndian.Uint16(extras[12:14])
-	event.SysEventVersion = uint8(versionTemp >> 8)
+	event.SysEventVersion = extras[12]
 }
 
 func (event *UprEvent) PopulateSeqnoAdv(extras []byte) {
@@ -281,105 +281,160 @@ func (event *UprEvent) GetSystemEventName() (string, error) {
 }
 
 func (event *UprEvent) GetManifestId() (uint64, error) {
+	// non-flatbuffer-serialised data
+	if event.SysEventVersion < 2 {
+		switch event.SystemEvent {
+		case ScopeDrop:
+			fallthrough
+		case ScopeCreate:
+			fallthrough
+		case CollectionDrop:
+			if event.SysEventVersion > 0 { // "Version 0 only" check for this and the above event types
+				return 0, ErrorInvalidVersion
+			}
+			fallthrough
+		case CollectionCreate:
+			if event.SysEventVersion > 1 { // CollectionCreate supports version 0 & 1
+				return 0, ErrorInvalidVersion
+			}
+			if event.ValueLen < 8 {
+				return 0, ErrorValueTooShort
+			}
+			return binary.BigEndian.Uint64(event.Value[0:8]), nil
+		default:
+			return 0, ErrorInvalidOp
+		}
+	}
+
+	// 'version 2' system events are all flatbuffer serialised
 	switch event.SystemEvent {
-	// Version 0 only checks
-	case CollectionChanged:
-		fallthrough
 	case ScopeDrop:
-		fallthrough
+		fb := systemevents.GetRootAsDroppedScope(event.Value, 0)
+		return fb.Uid(), nil
 	case ScopeCreate:
-		fallthrough
+		fb := systemevents.GetRootAsScope(event.Value, 0)
+		return fb.Uid(), nil
 	case CollectionDrop:
-		if event.SysEventVersion > 0 {
-			return 0, ErrorInvalidVersion
-		}
-		fallthrough
+		fb := systemevents.GetRootAsDroppedCollection(event.Value, 0)
+		return fb.Uid(), nil
 	case CollectionCreate:
-		// CollectionCreate supports version 1
-		if event.SysEventVersion > 1 {
-			return 0, ErrorInvalidVersion
-		}
-		if event.ValueLen < 8 {
-			return 0, ErrorValueTooShort
-		}
-		return binary.BigEndian.Uint64(event.Value[0:8]), nil
+		fallthrough
+	case CollectionChanged:
+		fb := systemevents.GetRootAsCollection(event.Value, 0)
+		return fb.Uid(), nil
 	default:
 		return 0, ErrorInvalidOp
 	}
 }
 
 func (event *UprEvent) GetCollectionId() (uint32, error) {
+	// non-flatbuffer-serialised data
+	if event.SysEventVersion < 2 {
+		switch event.SystemEvent {
+		case CollectionDrop:
+			if event.SysEventVersion > 0 {
+				return 0, ErrorInvalidVersion
+			}
+			fallthrough
+		case CollectionCreate:
+			if event.SysEventVersion > 1 {
+				return 0, ErrorInvalidVersion
+			}
+			if event.ValueLen < 16 {
+				return 0, ErrorValueTooShort
+			}
+			return binary.BigEndian.Uint32(event.Value[12:16]), nil
+		default:
+			return 0, ErrorInvalidOp
+		}
+	}
+
+	// 'version 2' system events are all flatbuffer serialised
 	switch event.SystemEvent {
 	case CollectionDrop:
-		if event.SysEventVersion > 0 {
-			return 0, ErrorInvalidVersion
-		}
-		fallthrough
+		fb := systemevents.GetRootAsDroppedCollection(event.Value, 0)
+		return fb.CollectionId(), nil
 	case CollectionCreate:
-		if event.SysEventVersion > 1 {
-			return 0, ErrorInvalidVersion
-		}
-		if event.ValueLen < 16 {
-			return 0, ErrorValueTooShort
-		}
-		return binary.BigEndian.Uint32(event.Value[12:16]), nil
+		fallthrough
 	case CollectionChanged:
-		if event.SysEventVersion > 0 {
-			return 0, ErrorInvalidVersion
-		}
-		if event.ValueLen < 12 {
-			return 0, ErrorValueTooShort
-		}
-		return binary.BigEndian.Uint32(event.Value[8:12]), nil
+		fb := systemevents.GetRootAsCollection(event.Value, 0)
+		return fb.CollectionId(), nil
 	default:
 		return 0, ErrorInvalidOp
 	}
 }
 
 func (event *UprEvent) GetScopeId() (uint32, error) {
+	// non-flatbuffer-serialised data
+	if event.SysEventVersion < 2 {
+		switch event.SystemEvent {
+		case ScopeCreate:
+			fallthrough
+		case ScopeDrop:
+			fallthrough
+		case CollectionDrop:
+			if event.SysEventVersion > 0 { // "Version 0 only" check for this and the above event types
+				return 0, ErrorInvalidVersion
+			}
+			fallthrough
+		case CollectionCreate:
+			if event.SysEventVersion > 1 { // CollectionCreate supports version 0 & 1
+				return 0, ErrorInvalidVersion
+			}
+			if event.ValueLen < 12 {
+				return 0, ErrorValueTooShort
+			}
+			return binary.BigEndian.Uint32(event.Value[8:12]), nil
+		default:
+			return 0, ErrorInvalidOp
+		}
+	}
+
+	// 'version 2' system events are all flatbuffer serialised
 	switch event.SystemEvent {
-	// version 0 checks
-	case ScopeCreate:
-		fallthrough
 	case ScopeDrop:
-		fallthrough
+		fb := systemevents.GetRootAsDroppedScope(event.Value, 0)
+		return fb.ScopeId(), nil
+	case ScopeCreate:
+		fb := systemevents.GetRootAsScope(event.Value, 0)
+		return fb.ScopeId(), nil
 	case CollectionDrop:
-		if event.SysEventVersion > 0 {
-			return 0, ErrorInvalidVersion
-		}
-		fallthrough
+		fb := systemevents.GetRootAsDroppedCollection(event.Value, 0)
+		return fb.ScopeId(), nil
 	case CollectionCreate:
-		// CollectionCreate could be either 0 or 1
-		if event.SysEventVersion > 1 {
-			return 0, ErrorInvalidVersion
-		}
-		if event.ValueLen < 12 {
-			return 0, ErrorValueTooShort
-		}
-		return binary.BigEndian.Uint32(event.Value[8:12]), nil
+		fallthrough
+	case CollectionChanged:
+		fb := systemevents.GetRootAsCollection(event.Value, 0)
+		return fb.ScopeId(), nil
 	default:
 		return 0, ErrorInvalidOp
 	}
 }
 
 func (event *UprEvent) GetMaxTTL() (uint32, error) {
+	// non-flatbuffer-serialised data
+	if event.SysEventVersion < 2 {
+		switch event.SystemEvent {
+		case CollectionCreate:
+			if event.SysEventVersion < 1 {
+				return 0, ErrorNoMaxTTL
+			}
+			if event.ValueLen < 20 {
+				return 0, ErrorValueTooShort
+			}
+			return binary.BigEndian.Uint32(event.Value[16:20]), nil
+		default:
+			return 0, ErrorInvalidOp
+		}
+	}
+
+	// 'version 2' system events are all flatbuffer serialised
 	switch event.SystemEvent {
 	case CollectionCreate:
-		if event.SysEventVersion < 1 {
-			return 0, ErrorNoMaxTTL
-		}
-		if event.ValueLen < 20 {
-			return 0, ErrorValueTooShort
-		}
-		return binary.BigEndian.Uint32(event.Value[16:20]), nil
+		fallthrough
 	case CollectionChanged:
-		if event.SysEventVersion > 0 {
-			return 0, ErrorInvalidVersion
-		}
-		if event.ValueLen < 16 {
-			return 0, ErrorValueTooShort
-		}
-		return binary.BigEndian.Uint32(event.Value[12:16]), nil
+		fb := systemevents.GetRootAsCollection(event.Value, 0)
+		return fb.MaxTtl(), nil
 	default:
 		return 0, ErrorInvalidOp
 	}

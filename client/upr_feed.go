@@ -117,15 +117,16 @@ const (
 )
 
 type UprFeatures struct {
-	Xattribute           bool
-	CompressionType      int
-	IncludeDeletionTime  bool
-	DcpPriority          PriorityType
-	EnableExpiry         bool
-	EnableStreamId       bool
-	EnableOso            bool
-	SendStreamEndOnClose bool
-	clientReadThreshold  int // set by EnableDeadConnDetection()
+	Xattribute                 bool
+	CompressionType            int
+	IncludeDeletionTime        bool
+	DcpPriority                PriorityType
+	EnableExpiry               bool
+	EnableStreamId             bool
+	EnableOso                  bool
+	SendStreamEndOnClose       bool
+	EnableFlatbuffersSysEvents bool
+	clientReadThreshold        int // set by EnableDeadConnDetection()
 }
 
 // Enables client-side dead connection detection. `threshold` should have a minimum value of (2*UPRDefaultNoopInterval).
@@ -581,6 +582,19 @@ func (feed *UprFeed) uprOpen(name string, sequence uint32, bufSize uint32, featu
 	}
 
 	feed.clientReadThreshold = features.clientReadThreshold
+
+	if features.EnableFlatbuffersSysEvents {
+		rq = &gomemcached.MCRequest{
+			Opcode: gomemcached.UPR_CONTROL,
+			Key:    []byte("flatbuffers_system_events"),
+			Body:   []byte("true"),
+			Opaque: getUprOpenCtrlOpaque(),
+		}
+		err = sendMcRequestSync(feed.conn, rq)
+		if err != nil {
+			return
+		}
+	}
 
 	if features.CompressionType == CompressionTypeSnappy {
 		activatedFeatures.CompressionType = CompressionTypeNone
