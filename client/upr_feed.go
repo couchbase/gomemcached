@@ -355,9 +355,12 @@ type UprStats struct {
 var ErrorInvalidLog = errors.New("couchbase.errorInvalidLog")
 
 func (flogp *FailoverLog) Latest() (vbuuid, seqno uint64, err error) {
-	if flogp != nil {
+	if flogp != nil && len(*flogp) > 0 {
 		flog := *flogp
-		latest := flog[len(flog)-1]
+		// The failover log will be in descending order of time meaning
+		// the oldest failover entry will be the last entry in the response and
+		// the newest entry will be the first entry in the response.
+		latest := flog[0]
 		return latest[0], latest[1], nil
 	}
 	return vbuuid, seqno, ErrorInvalidLog

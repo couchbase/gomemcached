@@ -5,10 +5,11 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/couchbase/gomemcached"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"testing"
+
+	"github.com/couchbase/gomemcached"
+	"github.com/stretchr/testify/assert"
 )
 
 func setupBoilerPlate() (*vbStreamNegotiator, *UprFeed) {
@@ -364,4 +365,59 @@ func TestNonDefaultScopeMutation(t *testing.T) {
 	assert.Equal(uint64(9), event.CollectionId)
 
 	fmt.Println("============== Test case TestNonDefaultScopeMutation =================")
+}
+
+func TestFailoverLog_Latest(t *testing.T) {
+	var f *FailoverLog = &FailoverLog{
+		{189935894142520, 7879},
+		{150911719482835, 0},
+	}
+	var f1 *FailoverLog = &FailoverLog{
+		{150911719482835, 0},
+	}
+	var f2 *FailoverLog = &FailoverLog{}
+	tests := []struct {
+		name       string
+		flogp      *FailoverLog
+		wantVbuuid uint64
+		wantSeqno  uint64
+		wantErr    bool
+	}{
+		{
+			name:       "Test1",
+			flogp:      f,
+			wantVbuuid: 189935894142520,
+			wantSeqno:  7879,
+			wantErr:    false,
+		},
+		{
+			name:       "Test2",
+			flogp:      f1,
+			wantVbuuid: 150911719482835,
+			wantSeqno:  0,
+			wantErr:    false,
+		},
+		{
+			name:       "Test3",
+			flogp:      f2,
+			wantVbuuid: 0,
+			wantSeqno:  0,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotVbuuid, gotSeqno, err := tt.flogp.Latest()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FailoverLog.Latest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotVbuuid != tt.wantVbuuid {
+				t.Errorf("FailoverLog.Latest() gotVbuuid = %v, want %v", gotVbuuid, tt.wantVbuuid)
+			}
+			if gotSeqno != tt.wantSeqno {
+				t.Errorf("FailoverLog.Latest() gotSeqno = %v, want %v", gotSeqno, tt.wantSeqno)
+			}
+		})
+	}
 }
