@@ -125,9 +125,7 @@ func makeUprEvent(rq gomemcached.MCRequest, stream *UprStream, bytesReceivedFrom
 	// 16 MSBits are left for application to multiplex on opaque value.
 	event.Opaque = appOpaque(rq.Opaque)
 
-	if len(rq.Extras) >= uprMutationExtraLen &&
-		event.Opcode == gomemcached.UPR_MUTATION {
-
+	if len(rq.Extras) >= uprMutationExtraLen && event.Opcode == gomemcached.UPR_MUTATION {
 		event.Seqno = binary.BigEndian.Uint64(rq.Extras[:8])
 		event.RevSeqno = binary.BigEndian.Uint64(rq.Extras[8:16])
 		event.Flags = binary.BigEndian.Uint32(rq.Extras[16:20])
@@ -135,24 +133,18 @@ func makeUprEvent(rq gomemcached.MCRequest, stream *UprStream, bytesReceivedFrom
 		event.LockTime = binary.BigEndian.Uint32(rq.Extras[24:28])
 		event.MetadataSize = binary.BigEndian.Uint16(rq.Extras[28:30])
 
-	} else if len(rq.Extras) >= uprDeletetionWithDeletionTimeExtraLen &&
-		event.Opcode == gomemcached.UPR_DELETION {
-
+	} else if event.Opcode == gomemcached.UPR_EXPIRATION ||
+		(len(rq.Extras) >= uprDeletetionWithDeletionTimeExtraLen && event.Opcode == gomemcached.UPR_DELETION) {
 		event.Seqno = binary.BigEndian.Uint64(rq.Extras[:8])
 		event.RevSeqno = binary.BigEndian.Uint64(rq.Extras[8:16])
 		event.Expiry = binary.BigEndian.Uint32(rq.Extras[16:20])
 
-	} else if len(rq.Extras) >= uprDeletetionExtraLen &&
-		event.Opcode == gomemcached.UPR_DELETION ||
-		event.Opcode == gomemcached.UPR_EXPIRATION {
-
+	} else if len(rq.Extras) >= uprDeletetionExtraLen && event.Opcode == gomemcached.UPR_DELETION {
 		event.Seqno = binary.BigEndian.Uint64(rq.Extras[:8])
 		event.RevSeqno = binary.BigEndian.Uint64(rq.Extras[8:16])
 		event.MetadataSize = binary.BigEndian.Uint16(rq.Extras[16:18])
 
-	} else if len(rq.Extras) >= uprSnapshotExtraLen &&
-		event.Opcode == gomemcached.UPR_SNAPSHOT {
-
+	} else if len(rq.Extras) >= uprSnapshotExtraLen && event.Opcode == gomemcached.UPR_SNAPSHOT {
 		event.SnapstartSeq = binary.BigEndian.Uint64(rq.Extras[:8])
 		event.SnapendSeq = binary.BigEndian.Uint64(rq.Extras[8:16])
 		event.SnapshotType = binary.BigEndian.Uint32(rq.Extras[16:20])
