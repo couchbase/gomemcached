@@ -449,6 +449,54 @@ func (event *UprEvent) GetOsoBegin() (bool, error) {
 	}
 }
 
+func (event *UprEvent) Clone() *UprEvent {
+	clone := &UprEvent{
+		Opcode:          event.Opcode,
+		Status:          event.Status,
+		VBucket:         event.VBucket,
+		DataType:        event.DataType,
+		Opaque:          event.Opaque,
+		VBuuid:          event.VBuuid,
+		Flags:           event.Flags,
+		Expiry:          event.Expiry,
+		Key:             append([]byte(nil), event.Key...),
+		Value:           append([]byte(nil), event.Value...),
+		OldValue:        append([]byte(nil), event.OldValue...),
+		Cas:             event.Cas,
+		Seqno:           event.Seqno,
+		RevSeqno:        event.RevSeqno,
+		LockTime:        event.LockTime,
+		MetadataSize:    event.MetadataSize,
+		SnapstartSeq:    event.SnapstartSeq,
+		SnapendSeq:      event.SnapendSeq,
+		SnapshotType:    event.SnapshotType,
+		Error:           event.Error,
+		ExtMeta:         append([]byte(nil), event.ExtMeta...),
+		AckSize:         event.AckSize,
+		SystemEvent:     event.SystemEvent,
+		SysEventVersion: event.SysEventVersion,
+		ValueLen:        event.ValueLen,
+		CollectionId:    event.CollectionId,
+	}
+
+	// Deep copy FailoverLog
+	if event.FailoverLog != nil {
+		copyLog := make(FailoverLog, len(*event.FailoverLog))
+		for i, pair := range *event.FailoverLog {
+			copyLog[i][0], copyLog[i][1] = pair[0], pair[1]
+		}
+		clone.FailoverLog = &copyLog
+	}
+
+	// Deep copy StreamId
+	if event.StreamId != nil {
+		copyStreamId := *event.StreamId
+		clone.StreamId = &copyStreamId
+	}
+
+	return clone
+}
+
 type Uleb128 []byte
 
 func (u Uleb128) ToUint32(cachedLen int) (result uint32, bytesShifted int) {
