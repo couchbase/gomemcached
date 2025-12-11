@@ -66,7 +66,7 @@ func (_c *UprFeedIface_ClientAck_Call) RunAndReturn(run func(*memcached.UprEvent
 	return _c
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *UprFeedIface) Close() {
 	_m.Called()
 }
@@ -94,7 +94,7 @@ func (_c *UprFeedIface_Close_Call) Return() *UprFeedIface_Close_Call {
 }
 
 func (_c *UprFeedIface_Close_Call) RunAndReturn(run func()) *UprFeedIface_Close_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -145,7 +145,7 @@ func (_c *UprFeedIface_CloseStream_Call) RunAndReturn(run func(uint16, uint16) e
 	return _c
 }
 
-// Closed provides a mock function with given fields:
+// Closed provides a mock function with no fields
 func (_m *UprFeedIface) Closed() bool {
 	ret := _m.Called()
 
@@ -190,7 +190,7 @@ func (_c *UprFeedIface_Closed_Call) RunAndReturn(run func() bool) *UprFeedIface_
 	return _c
 }
 
-// GetError provides a mock function with given fields:
+// GetError provides a mock function with no fields
 func (_m *UprFeedIface) GetError() error {
 	ret := _m.Called()
 
@@ -235,7 +235,7 @@ func (_c *UprFeedIface_GetError_Call) RunAndReturn(run func() error) *UprFeedIfa
 	return _c
 }
 
-// GetUprEventCh provides a mock function with given fields:
+// GetUprEventCh provides a mock function with no fields
 func (_m *UprFeedIface) GetUprEventCh() <-chan *memcached.UprEvent {
 	ret := _m.Called()
 
@@ -282,7 +282,7 @@ func (_c *UprFeedIface_GetUprEventCh_Call) RunAndReturn(run func() <-chan *memca
 	return _c
 }
 
-// GetUprStats provides a mock function with given fields:
+// GetUprStats provides a mock function with no fields
 func (_m *UprFeedIface) GetUprStats() *memcached.UprStats {
 	ret := _m.Called()
 
@@ -375,7 +375,7 @@ func (_c *UprFeedIface_SetPriorityAsync_Call) RunAndReturn(run func(memcached.Pr
 	return _c
 }
 
-// StartFeed provides a mock function with given fields:
+// StartFeed provides a mock function with no fields
 func (_m *UprFeedIface) StartFeed() error {
 	ret := _m.Called()
 

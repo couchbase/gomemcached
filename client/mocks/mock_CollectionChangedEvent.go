@@ -17,7 +17,7 @@ func (_m *CollectionChangedEvent) EXPECT() *CollectionChangedEvent_Expecter {
 	return &CollectionChangedEvent_Expecter{mock: &_m.Mock}
 }
 
-// GetCollectionId provides a mock function with given fields:
+// GetCollectionId provides a mock function with no fields
 func (_m *CollectionChangedEvent) GetCollectionId() (uint32, error) {
 	ret := _m.Called()
 
@@ -72,7 +72,7 @@ func (_c *CollectionChangedEvent_GetCollectionId_Call) RunAndReturn(run func() (
 	return _c
 }
 
-// GetManifestId provides a mock function with given fields:
+// GetManifestId provides a mock function with no fields
 func (_m *CollectionChangedEvent) GetManifestId() (uint64, error) {
 	ret := _m.Called()
 
@@ -127,7 +127,7 @@ func (_c *CollectionChangedEvent_GetManifestId_Call) RunAndReturn(run func() (ui
 	return _c
 }
 
-// GetMaxTTL provides a mock function with given fields:
+// GetMaxTTL provides a mock function with no fields
 func (_m *CollectionChangedEvent) GetMaxTTL() (uint32, error) {
 	ret := _m.Called()
 

@@ -17,7 +17,7 @@ func (_m *CollectionCreateEvent) EXPECT() *CollectionCreateEvent_Expecter {
 	return &CollectionCreateEvent_Expecter{mock: &_m.Mock}
 }
 
-// GetCollectionId provides a mock function with given fields:
+// GetCollectionId provides a mock function with no fields
 func (_m *CollectionCreateEvent) GetCollectionId() (uint32, error) {
 	ret := _m.Called()
 
@@ -72,7 +72,7 @@ func (_c *CollectionCreateEvent_GetCollectionId_Call) RunAndReturn(run func() (u
 	return _c
 }
 
-// GetManifestId provides a mock function with given fields:
+// GetManifestId provides a mock function with no fields
 func (_m *CollectionCreateEvent) GetManifestId() (uint64, error) {
 	ret := _m.Called()
 
@@ -127,7 +127,7 @@ func (_c *CollectionCreateEvent_GetManifestId_Call) RunAndReturn(run func() (uin
 	return _c
 }
 
-// GetMaxTTL provides a mock function with given fields:
+// GetMaxTTL provides a mock function with no fields
 func (_m *CollectionCreateEvent) GetMaxTTL() (uint32, error) {
 	ret := _m.Called()
 
@@ -182,7 +182,7 @@ func (_c *CollectionCreateEvent_GetMaxTTL_Call) RunAndReturn(run func() (uint32,
 	return _c
 }
 
-// GetScopeId provides a mock function with given fields:
+// GetScopeId provides a mock function with no fields
 func (_m *CollectionCreateEvent) GetScopeId() (uint32, error) {
 	ret := _m.Called()
 
@@ -237,7 +237,7 @@ func (_c *CollectionCreateEvent_GetScopeId_Call) RunAndReturn(run func() (uint32
 	return _c
 }
 
-// GetSystemEventName provides a mock function with given fields:
+// GetSystemEventName provides a mock function with no fields
 func (_m *CollectionCreateEvent) GetSystemEventName() (string, error) {
 	ret := _m.Called()
 

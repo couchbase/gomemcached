@@ -21,7 +21,7 @@ func (_m *MemcachedConnection) EXPECT() *MemcachedConnection_Expecter {
 	return &MemcachedConnection_Expecter{mock: &_m.Mock}
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *MemcachedConnection) Close() error {
 	ret := _m.Called()
 

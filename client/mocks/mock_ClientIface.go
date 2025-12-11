@@ -235,7 +235,7 @@ func (_c *ClientIface_Auth_Call) RunAndReturn(run func(string, string) (*gomemca
 	return _c
 }
 
-// AuthList provides a mock function with given fields:
+// AuthList provides a mock function with no fields
 func (_m *ClientIface) AuthList() (*gomemcached.MCResponse, error) {
 	ret := _m.Called()
 
@@ -595,7 +595,7 @@ func (_c *ClientIface_CancelRangeScan_Call) RunAndReturn(run func(uint16, []byte
 	return _c
 }
 
-// Close provides a mock function with given fields:
+// Close provides a mock function with no fields
 func (_m *ClientIface) Close() error {
 	ret := _m.Called()
 
@@ -640,7 +640,7 @@ func (_c *ClientIface_Close_Call) RunAndReturn(run func() error) *ClientIface_Cl
 	return _c
 }
 
-// CollectionEnabled provides a mock function with given fields:
+// CollectionEnabled provides a mock function with no fields
 func (_m *ClientIface) CollectionEnabled() bool {
 	ret := _m.Called()
 
@@ -1217,7 +1217,7 @@ func (_c *ClientIface_EnableFeatures_Call) RunAndReturn(run func(memcached.Featu
 	return _c
 }
 
-// EnableMutationToken provides a mock function with given fields:
+// EnableMutationToken provides a mock function with no fields
 func (_m *ClientIface) EnableMutationToken() (*gomemcached.MCResponse, error) {
 	ret := _m.Called()
 
@@ -1560,7 +1560,7 @@ func (_c *ClientIface_GetBulk_Call) RunAndReturn(run func(uint16, []string, map[
 	return _c
 }
 
-// GetCollectionsManifest provides a mock function with given fields:
+// GetCollectionsManifest provides a mock function with no fields
 func (_m *ClientIface) GetCollectionsManifest() (*gomemcached.MCResponse, error) {
 	ret := _m.Called()
 
@@ -1617,7 +1617,7 @@ func (_c *ClientIface_GetCollectionsManifest_Call) RunAndReturn(run func() (*gom
 	return _c
 }
 
-// GetConnName provides a mock function with given fields:
+// GetConnName provides a mock function with no fields
 func (_m *ClientIface) GetConnName() string {
 	ret := _m.Called()
 
@@ -1940,7 +1940,7 @@ func (_c *ClientIface_GetSubdoc_Call) RunAndReturn(run func(uint16, string, []st
 	return _c
 }
 
-// Hijack provides a mock function with given fields:
+// Hijack provides a mock function with no fields
 func (_m *ClientIface) Hijack() memcached.MemcachedConnection {
 	ret := _m.Called()
 
@@ -2062,7 +2062,7 @@ func (_c *ClientIface_Incr_Call) RunAndReturn(run func(uint16, string, uint64, u
 	return _c
 }
 
-// LastBucket provides a mock function with given fields:
+// LastBucket provides a mock function with no fields
 func (_m *ClientIface) LastBucket() string {
 	ret := _m.Called()
 
@@ -2107,7 +2107,7 @@ func (_c *ClientIface_LastBucket_Call) RunAndReturn(run func() string) *ClientIf
 	return _c
 }
 
-// NewUprFeed provides a mock function with given fields:
+// NewUprFeed provides a mock function with no fields
 func (_m *ClientIface) NewUprFeed() (*memcached.UprFeed, error) {
 	ret := _m.Called()
 
@@ -2164,7 +2164,7 @@ func (_c *ClientIface_NewUprFeed_Call) RunAndReturn(run func() (*memcached.UprFe
 	return _c
 }
 
-// NewUprFeedIface provides a mock function with given fields:
+// NewUprFeedIface provides a mock function with no fields
 func (_m *ClientIface) NewUprFeedIface() (memcached.UprFeedIface, error) {
 	ret := _m.Called()
 
@@ -2453,7 +2453,7 @@ func (_c *ClientIface_ObserveSeq_Call) RunAndReturn(run func(uint16, uint64) (*m
 	return _c
 }
 
-// Receive provides a mock function with given fields:
+// Receive provides a mock function with no fields
 func (_m *ClientIface) Receive() (*gomemcached.MCResponse, error) {
 	ret := _m.Called()
 
@@ -2568,7 +2568,7 @@ func (_c *ClientIface_ReceiveWithDeadline_Call) RunAndReturn(run func(time.Time)
 	return _c
 }
 
-// Replica provides a mock function with given fields:
+// Replica provides a mock function with no fields
 func (_m *ClientIface) Replica() bool {
 	ret := _m.Called()
 
@@ -2913,7 +2913,7 @@ func (_c *ClientIface_SetConnName_Call) Return() *ClientIface_SetConnName_Call {
 }
 
 func (_c *ClientIface_SetConnName_Call) RunAndReturn(run func(string)) *ClientIface_SetConnName_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -2946,7 +2946,7 @@ func (_c *ClientIface_SetDeadline_Call) Return() *ClientIface_SetDeadline_Call {
 }
 
 func (_c *ClientIface_SetDeadline_Call) RunAndReturn(run func(time.Time)) *ClientIface_SetDeadline_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -2979,7 +2979,7 @@ func (_c *ClientIface_SetKeepAliveOptions_Call) Return() *ClientIface_SetKeepAli
 }
 
 func (_c *ClientIface_SetKeepAliveOptions_Call) RunAndReturn(run func(time.Duration)) *ClientIface_SetKeepAliveOptions_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -3012,7 +3012,7 @@ func (_c *ClientIface_SetReadDeadline_Call) Return() *ClientIface_SetReadDeadlin
 }
 
 func (_c *ClientIface_SetReadDeadline_Call) RunAndReturn(run func(time.Time)) *ClientIface_SetReadDeadline_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -3045,7 +3045,7 @@ func (_c *ClientIface_SetReplica_Call) Return() *ClientIface_SetReplica_Call {
 }
 
 func (_c *ClientIface_SetReplica_Call) RunAndReturn(run func(bool)) *ClientIface_SetReplica_Call {
-	_c.Call.Return(run)
+	_c.Run(run)
 	return _c
 }
 
@@ -3232,9 +3232,16 @@ func (_c *ClientIface_StatsFunc_Call) RunAndReturn(run func(string, func([]byte,
 	return _c
 }
 
-// StatsMap provides a mock function with given fields: key
-func (_m *ClientIface) StatsMap(key string) (map[string]string, error) {
-	ret := _m.Called(key)
+// StatsMap provides a mock function with given fields: key, context
+func (_m *ClientIface) StatsMap(key string, context ...*memcached.ClientContext) (map[string]string, error) {
+	_va := make([]interface{}, len(context))
+	for _i := range context {
+		_va[_i] = context[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, key)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StatsMap")
@@ -3242,19 +3249,19 @@ func (_m *ClientIface) StatsMap(key string) (map[string]string, error) {
 
 	var r0 map[string]string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (map[string]string, error)); ok {
-		return rf(key)
+	if rf, ok := ret.Get(0).(func(string, ...*memcached.ClientContext) (map[string]string, error)); ok {
+		return rf(key, context...)
 	}
-	if rf, ok := ret.Get(0).(func(string) map[string]string); ok {
-		r0 = rf(key)
+	if rf, ok := ret.Get(0).(func(string, ...*memcached.ClientContext) map[string]string); ok {
+		r0 = rf(key, context...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(key)
+	if rf, ok := ret.Get(1).(func(string, ...*memcached.ClientContext) error); ok {
+		r1 = rf(key, context...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3269,13 +3276,21 @@ type ClientIface_StatsMap_Call struct {
 
 // StatsMap is a helper method to define mock.On call
 //   - key string
-func (_e *ClientIface_Expecter) StatsMap(key interface{}) *ClientIface_StatsMap_Call {
-	return &ClientIface_StatsMap_Call{Call: _e.mock.On("StatsMap", key)}
+//   - context ...*memcached.ClientContext
+func (_e *ClientIface_Expecter) StatsMap(key interface{}, context ...interface{}) *ClientIface_StatsMap_Call {
+	return &ClientIface_StatsMap_Call{Call: _e.mock.On("StatsMap",
+		append([]interface{}{key}, context...)...)}
 }
 
-func (_c *ClientIface_StatsMap_Call) Run(run func(key string)) *ClientIface_StatsMap_Call {
+func (_c *ClientIface_StatsMap_Call) Run(run func(key string, context ...*memcached.ClientContext)) *ClientIface_StatsMap_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
+		variadicArgs := make([]*memcached.ClientContext, len(args)-1)
+		for i, a := range args[1:] {
+			if a != nil {
+				variadicArgs[i] = a.(*memcached.ClientContext)
+			}
+		}
+		run(args[0].(string), variadicArgs...)
 	})
 	return _c
 }
@@ -3285,22 +3300,29 @@ func (_c *ClientIface_StatsMap_Call) Return(_a0 map[string]string, _a1 error) *C
 	return _c
 }
 
-func (_c *ClientIface_StatsMap_Call) RunAndReturn(run func(string) (map[string]string, error)) *ClientIface_StatsMap_Call {
+func (_c *ClientIface_StatsMap_Call) RunAndReturn(run func(string, ...*memcached.ClientContext) (map[string]string, error)) *ClientIface_StatsMap_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// StatsMapForSpecifiedStats provides a mock function with given fields: key, statsMap
-func (_m *ClientIface) StatsMapForSpecifiedStats(key string, statsMap map[string]string) error {
-	ret := _m.Called(key, statsMap)
+// StatsMapForSpecifiedStats provides a mock function with given fields: key, statsMap, context
+func (_m *ClientIface) StatsMapForSpecifiedStats(key string, statsMap map[string]string, context ...*memcached.ClientContext) error {
+	_va := make([]interface{}, len(context))
+	for _i := range context {
+		_va[_i] = context[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, key, statsMap)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StatsMapForSpecifiedStats")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, map[string]string) error); ok {
-		r0 = rf(key, statsMap)
+	if rf, ok := ret.Get(0).(func(string, map[string]string, ...*memcached.ClientContext) error); ok {
+		r0 = rf(key, statsMap, context...)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3316,13 +3338,21 @@ type ClientIface_StatsMapForSpecifiedStats_Call struct {
 // StatsMapForSpecifiedStats is a helper method to define mock.On call
 //   - key string
 //   - statsMap map[string]string
-func (_e *ClientIface_Expecter) StatsMapForSpecifiedStats(key interface{}, statsMap interface{}) *ClientIface_StatsMapForSpecifiedStats_Call {
-	return &ClientIface_StatsMapForSpecifiedStats_Call{Call: _e.mock.On("StatsMapForSpecifiedStats", key, statsMap)}
+//   - context ...*memcached.ClientContext
+func (_e *ClientIface_Expecter) StatsMapForSpecifiedStats(key interface{}, statsMap interface{}, context ...interface{}) *ClientIface_StatsMapForSpecifiedStats_Call {
+	return &ClientIface_StatsMapForSpecifiedStats_Call{Call: _e.mock.On("StatsMapForSpecifiedStats",
+		append([]interface{}{key, statsMap}, context...)...)}
 }
 
-func (_c *ClientIface_StatsMapForSpecifiedStats_Call) Run(run func(key string, statsMap map[string]string)) *ClientIface_StatsMapForSpecifiedStats_Call {
+func (_c *ClientIface_StatsMapForSpecifiedStats_Call) Run(run func(key string, statsMap map[string]string, context ...*memcached.ClientContext)) *ClientIface_StatsMapForSpecifiedStats_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(map[string]string))
+		variadicArgs := make([]*memcached.ClientContext, len(args)-2)
+		for i, a := range args[2:] {
+			if a != nil {
+				variadicArgs[i] = a.(*memcached.ClientContext)
+			}
+		}
+		run(args[0].(string), args[1].(map[string]string), variadicArgs...)
 	})
 	return _c
 }
@@ -3332,7 +3362,7 @@ func (_c *ClientIface_StatsMapForSpecifiedStats_Call) Return(_a0 error) *ClientI
 	return _c
 }
 
-func (_c *ClientIface_StatsMapForSpecifiedStats_Call) RunAndReturn(run func(string, map[string]string) error) *ClientIface_StatsMapForSpecifiedStats_Call {
+func (_c *ClientIface_StatsMapForSpecifiedStats_Call) RunAndReturn(run func(string, map[string]string, ...*memcached.ClientContext) error) *ClientIface_StatsMapForSpecifiedStats_Call {
 	_c.Call.Return(run)
 	return _c
 }

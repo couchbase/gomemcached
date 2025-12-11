@@ -17,7 +17,7 @@ func (_m *ScopeCreateEvent) EXPECT() *ScopeCreateEvent_Expecter {
 	return &ScopeCreateEvent_Expecter{mock: &_m.Mock}
 }
 
-// GetManifestId provides a mock function with given fields:
+// GetManifestId provides a mock function with no fields
 func (_m *ScopeCreateEvent) GetManifestId() (uint64, error) {
 	ret := _m.Called()
 
@@ -72,7 +72,7 @@ func (_c *ScopeCreateEvent_GetManifestId_Call) RunAndReturn(run func() (uint64, 
 	return _c
 }
 
-// GetScopeId provides a mock function with given fields:
+// GetScopeId provides a mock function with no fields
 func (_m *ScopeCreateEvent) GetScopeId() (uint32, error) {
 	ret := _m.Called()
 
@@ -127,7 +127,7 @@ func (_c *ScopeCreateEvent_GetScopeId_Call) RunAndReturn(run func() (uint32, err
 	return _c
 }
 
-// GetSystemEventName provides a mock function with given fields:
+// GetSystemEventName provides a mock function with no fields
 func (_m *ScopeCreateEvent) GetSystemEventName() (string, error) {
 	ret := _m.Called()
 

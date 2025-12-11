@@ -17,7 +17,7 @@ func (_m *CollectionDropEvent) EXPECT() *CollectionDropEvent_Expecter {
 	return &CollectionDropEvent_Expecter{mock: &_m.Mock}
 }
 
-// GetCollectionId provides a mock function with given fields:
+// GetCollectionId provides a mock function with no fields
 func (_m *CollectionDropEvent) GetCollectionId() (uint32, error) {
 	ret := _m.Called()
 
@@ -72,7 +72,7 @@ func (_c *CollectionDropEvent_GetCollectionId_Call) RunAndReturn(run func() (uin
 	return _c
 }
 
-// GetManifestId provides a mock function with given fields:
+// GetManifestId provides a mock function with no fields
 func (_m *CollectionDropEvent) GetManifestId() (uint64, error) {
 	ret := _m.Called()
 
@@ -127,7 +127,7 @@ func (_c *CollectionDropEvent_GetManifestId_Call) RunAndReturn(run func() (uint6
 	return _c
 }
 
-// GetScopeId provides a mock function with given fields:
+// GetScopeId provides a mock function with no fields
 func (_m *CollectionDropEvent) GetScopeId() (uint32, error) {
 	ret := _m.Called()
 
