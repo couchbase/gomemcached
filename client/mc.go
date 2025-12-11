@@ -69,8 +69,8 @@ type ClientIface interface {
 		*gomemcached.MCResponse, error)
 	Stats(key string) ([]StatValue, error)
 	StatsFunc(key string, fn func(key, val []byte)) error
-	StatsMap(key string) (map[string]string, error)
-	StatsMapForSpecifiedStats(key string, statsMap map[string]string) error
+	StatsMap(key string, context ...*ClientContext) (map[string]string, error)
+	StatsMapForSpecifiedStats(key string, statsMap map[string]string, context ...*ClientContext) error
 	Transmit(req *gomemcached.MCRequest) error
 	TransmitWithDeadline(req *gomemcached.MCRequest, deadline time.Time) error
 	TransmitResponse(res *gomemcached.MCResponse) error
@@ -124,6 +124,11 @@ type ClientContext struct {
 
 	// Include XATTRs in random document retrieval
 	IncludeXATTRs bool
+
+	// Calls a callback that sets the total number of bytes used, if set
+	// Not all client calls are supported, and dev should check to make sure this call is supported
+	// or build them as needed
+	BytesUsedCallback func(int)
 }
 
 func (this *ClientContext) Copy() *ClientContext {
@@ -1797,7 +1802,9 @@ func (c *Client) StatsFunc(key string, fn func(key, val []byte)) error {
 // them as a map.
 //
 // Use "" as the stat key for toplevel stats.
-func (c *Client) StatsMap(key string) (map[string]string, error) {
+func (c *Client) StatsMap(key string, context ...*ClientContext) (map[string]string, error) {
+	var sizeUsed int
+
 	rv := make(map[string]string)
 
 	req := &gomemcached.MCRequest{
@@ -1805,6 +1812,7 @@ func (c *Client) StatsMap(key string) (map[string]string, error) {
 		Key:    []byte(key),
 		Opaque: 918494,
 	}
+	sizeUsed += req.Size()
 
 	err := c.Transmit(req)
 	if err != nil {
@@ -1812,10 +1820,11 @@ func (c *Client) StatsMap(key string) (map[string]string, error) {
 	}
 
 	for {
-		res, _, err := getResponse(c.conn, c.hdrBuf)
+		res, bytesReceived, err := getResponse(c.conn, c.hdrBuf)
 		if err != nil {
 			return rv, err
 		}
+		sizeUsed += bytesReceived
 		k := string(res.Key)
 		if k == "" {
 			break
@@ -1823,12 +1832,16 @@ func (c *Client) StatsMap(key string) (map[string]string, error) {
 		rv[k] = string(res.Body)
 	}
 
+	if context != nil && context[0] != nil && context[0].BytesUsedCallback != nil {
+		context[0].BytesUsedCallback(sizeUsed)
+	}
 	return rv, nil
 }
 
 // instead of returning a new statsMap, simply populate passed in statsMap, which contains all the keys
 // for which stats needs to be retrieved
-func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]string) error {
+func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]string, context ...*ClientContext) error {
+	var sizeUsed int
 
 	// clear statsMap
 	for key, _ := range statsMap {
@@ -1840,6 +1853,7 @@ func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]strin
 		Key:    []byte(key),
 		Opaque: 918494,
 	}
+	sizeUsed += req.Size()
 
 	err := c.Transmit(req)
 	if err != nil {
@@ -1847,10 +1861,11 @@ func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]strin
 	}
 
 	for {
-		res, _, err := getResponse(c.conn, c.hdrBuf)
+		res, bytesReceived, err := getResponse(c.conn, c.hdrBuf)
 		if err != nil {
 			return err
 		}
+		sizeUsed += bytesReceived
 		k := string(res.Key)
 		if k == "" {
 			break
@@ -1860,6 +1875,9 @@ func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]strin
 		}
 	}
 
+	if context != nil && context[0] != nil && context[0].BytesUsedCallback != nil {
+		context[0].BytesUsedCallback(sizeUsed)
+	}
 	return nil
 }
 
