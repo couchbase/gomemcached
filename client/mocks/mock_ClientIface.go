@@ -3506,9 +3506,16 @@ func (_c *ClientIface_TransmitWithDeadline_Call) RunAndReturn(run func(*gomemcac
 	return _c
 }
 
-// UprGetFailoverLog provides a mock function with given fields: vb
-func (_m *ClientIface) UprGetFailoverLog(vb []uint16) (map[uint16]*memcached.FailoverLog, error) {
-	ret := _m.Called(vb)
+// UprGetFailoverLog provides a mock function with given fields: vb, context
+func (_m *ClientIface) UprGetFailoverLog(vb []uint16, context ...*memcached.ClientContext) (map[uint16]*memcached.FailoverLog, error) {
+	_va := make([]interface{}, len(context))
+	for _i := range context {
+		_va[_i] = context[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, vb)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UprGetFailoverLog")
@@ -3516,19 +3523,19 @@ func (_m *ClientIface) UprGetFailoverLog(vb []uint16) (map[uint16]*memcached.Fai
 
 	var r0 map[uint16]*memcached.FailoverLog
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]uint16) (map[uint16]*memcached.FailoverLog, error)); ok {
-		return rf(vb)
+	if rf, ok := ret.Get(0).(func([]uint16, ...*memcached.ClientContext) (map[uint16]*memcached.FailoverLog, error)); ok {
+		return rf(vb, context...)
 	}
-	if rf, ok := ret.Get(0).(func([]uint16) map[uint16]*memcached.FailoverLog); ok {
-		r0 = rf(vb)
+	if rf, ok := ret.Get(0).(func([]uint16, ...*memcached.ClientContext) map[uint16]*memcached.FailoverLog); ok {
+		r0 = rf(vb, context...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[uint16]*memcached.FailoverLog)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]uint16) error); ok {
-		r1 = rf(vb)
+	if rf, ok := ret.Get(1).(func([]uint16, ...*memcached.ClientContext) error); ok {
+		r1 = rf(vb, context...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3543,13 +3550,21 @@ type ClientIface_UprGetFailoverLog_Call struct {
 
 // UprGetFailoverLog is a helper method to define mock.On call
 //   - vb []uint16
-func (_e *ClientIface_Expecter) UprGetFailoverLog(vb interface{}) *ClientIface_UprGetFailoverLog_Call {
-	return &ClientIface_UprGetFailoverLog_Call{Call: _e.mock.On("UprGetFailoverLog", vb)}
+//   - context ...*memcached.ClientContext
+func (_e *ClientIface_Expecter) UprGetFailoverLog(vb interface{}, context ...interface{}) *ClientIface_UprGetFailoverLog_Call {
+	return &ClientIface_UprGetFailoverLog_Call{Call: _e.mock.On("UprGetFailoverLog",
+		append([]interface{}{vb}, context...)...)}
 }
 
-func (_c *ClientIface_UprGetFailoverLog_Call) Run(run func(vb []uint16)) *ClientIface_UprGetFailoverLog_Call {
+func (_c *ClientIface_UprGetFailoverLog_Call) Run(run func(vb []uint16, context ...*memcached.ClientContext)) *ClientIface_UprGetFailoverLog_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]uint16))
+		variadicArgs := make([]*memcached.ClientContext, len(args)-1)
+		for i, a := range args[1:] {
+			if a != nil {
+				variadicArgs[i] = a.(*memcached.ClientContext)
+			}
+		}
+		run(args[0].([]uint16), variadicArgs...)
 	})
 	return _c
 }
@@ -3559,7 +3574,7 @@ func (_c *ClientIface_UprGetFailoverLog_Call) Return(_a0 map[uint16]*memcached.F
 	return _c
 }
 
-func (_c *ClientIface_UprGetFailoverLog_Call) RunAndReturn(run func([]uint16) (map[uint16]*memcached.FailoverLog, error)) *ClientIface_UprGetFailoverLog_Call {
+func (_c *ClientIface_UprGetFailoverLog_Call) RunAndReturn(run func([]uint16, ...*memcached.ClientContext) (map[uint16]*memcached.FailoverLog, error)) *ClientIface_UprGetFailoverLog_Call {
 	_c.Call.Return(run)
 	return _c
 }

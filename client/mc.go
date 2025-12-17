@@ -74,7 +74,7 @@ type ClientIface interface {
 	Transmit(req *gomemcached.MCRequest) error
 	TransmitWithDeadline(req *gomemcached.MCRequest, deadline time.Time) error
 	TransmitResponse(res *gomemcached.MCResponse) error
-	UprGetFailoverLog(vb []uint16) (map[uint16]*FailoverLog, error)
+	UprGetFailoverLog(vb []uint16, context ...*ClientContext) (map[uint16]*FailoverLog, error)
 	GetConnName() string
 	SetConnName(name string)
 
@@ -1882,11 +1882,17 @@ func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]strin
 }
 
 // UprGetFailoverLog for given list of vbuckets.
-func (mc *Client) UprGetFailoverLog(vb []uint16) (map[uint16]*FailoverLog, error) {
-
+func (mc *Client) UprGetFailoverLog(vb []uint16, context ...*ClientContext) (map[uint16]*FailoverLog, error) {
+	var totalSizeUsed int
 	rq := &gomemcached.MCRequest{
 		Opcode: gomemcached.UPR_FAILOVERLOG,
 		Opaque: opaqueFailover,
+	}
+
+	if context != nil && len(context) > 0 && context[0] != nil && context[0].BytesUsedCallback != nil {
+		defer func() {
+			context[0].BytesUsedCallback(totalSizeUsed)
+		}()
 	}
 
 	failoverLogs := make(map[uint16]*FailoverLog)
@@ -1895,13 +1901,15 @@ func (mc *Client) UprGetFailoverLog(vb []uint16) (map[uint16]*FailoverLog, error
 		if err := mc.Transmit(rq); err != nil {
 			return nil, err
 		}
-		res, err := mc.Receive()
+		totalSizeUsed += rq.Size()
 
+		res, err := mc.Receive()
 		if err != nil {
 			return nil, fmt.Errorf("failed to receive %s", err.Error())
 		} else if res.Opcode != gomemcached.UPR_FAILOVERLOG || res.Status != gomemcached.SUCCESS {
 			return nil, fmt.Errorf("unexpected #opcode %v", res.Opcode)
 		}
+		totalSizeUsed += res.Size()
 
 		flog, err := parseFailoverLog(res.Body)
 		if err != nil {
