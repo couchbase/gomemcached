@@ -273,6 +273,7 @@ const (
 	FeaturePreserveExpiry    = Feature(0x14)
 	FeatureComputeUnits      = Feature(0x1a)
 	FeatureHandleThrottle    = Feature(0x1b)
+	FeatureMutateWithMeta    = Feature(0x25)
 )
 
 type MemcachedConnection interface {

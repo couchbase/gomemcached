@@ -85,6 +85,10 @@ const (
 	GETEX         = CommandCode(0x49)
 	GETEX_REPLICA = CommandCode(0x4a)
 
+	// MUTATE_WITH_META is a command which has all the features supported by set/del/add_with_meta,
+	// but also has the support for CAS/revReqno macro expansion in xattrs.
+	MUTATE_WITH_META = CommandCode(0x4b)
+
 	UPR_OPEN        = CommandCode(0x50) // Open a UPR connection with a name
 	UPR_ADDSTREAM   = CommandCode(0x51) // Sent by ebucketMigrator to UPR Consumer
 	UPR_CLOSESTREAM = CommandCode(0x52) // Sent by eBucketMigrator to UPR Consumer
