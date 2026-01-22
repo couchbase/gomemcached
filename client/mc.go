@@ -1832,7 +1832,7 @@ func (c *Client) StatsMap(key string, context ...*ClientContext) (map[string]str
 		rv[k] = string(res.Body)
 	}
 
-	if context != nil && context[0] != nil && context[0].BytesUsedCallback != nil {
+	if len(context) > 0 && context[0] != nil && context[0].BytesUsedCallback != nil {
 		context[0].BytesUsedCallback(sizeUsed)
 	}
 	return rv, nil
@@ -1875,7 +1875,7 @@ func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]strin
 		}
 	}
 
-	if context != nil && context[0] != nil && context[0].BytesUsedCallback != nil {
+	if len(context) > 0 && context[0] != nil && context[0].BytesUsedCallback != nil {
 		context[0].BytesUsedCallback(sizeUsed)
 	}
 	return nil
