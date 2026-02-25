@@ -261,7 +261,6 @@ func (negotiator *vbStreamNegotiator) handleStreamRequest(feed *UprFeed,
 		feed.activateStream(vbno, opaque, stream)
 		feed.negotiator.deleteStreamFromMap(vbno, opaque)
 		logging.Infof("UPR_STREAMREQ for vb %d successful", vbno)
-
 	} else if err != nil {
 		logging.Errorf("UPR_STREAMREQ for vbucket %d erro %s", vbno, err.Error())
 		event = &UprEvent{
@@ -271,6 +270,10 @@ func (negotiator *vbStreamNegotiator) handleStreamRequest(feed *UprFeed,
 			Error:   err,
 		}
 		negotiator.deleteStreamFromMap(vbno, opaque)
+		if status == gomemcached.TMPFAIL {
+			// For TMPFAIL, do not return err as it would close the feed. Leave it open and let client retry after some time
+			err = nil
+		}
 	}
 	return event, err
 }
@@ -888,6 +891,10 @@ func handleStreamRequest(
 		rollback = binary.BigEndian.Uint64(res.Body)
 		logging.Infof("Rollback seqno is %v for response with opaque %v\n", rollback, res.Opaque)
 		return res.Status, rollback, nil, nil
+
+	case res.Status == gomemcached.TMPFAIL:
+		err = fmt.Errorf("temporary failure for response with opaque %v", res.Opaque)
+		return res.Status, 0, nil, err
 
 	case res.Status != gomemcached.SUCCESS:
 		err = fmt.Errorf("unexpected status %v for response with opaque %v", res.Status, res.Opaque)
