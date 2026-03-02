@@ -68,7 +68,7 @@ type ClientIface interface {
 	SetCas(vb uint16, key string, flags int, exp int, cas uint64, body []byte, context ...*ClientContext) (
 		*gomemcached.MCResponse, error)
 	Stats(key string) ([]StatValue, error)
-	StatsFunc(key string, fn func(key, val []byte)) error
+	StatsFunc(key string, fn func(key, val []byte), context ...*ClientContext) error
 	StatsMap(key string, context ...*ClientContext) (map[string]string, error)
 	StatsMapForSpecifiedStats(key string, statsMap map[string]string, context ...*ClientContext) error
 	Transmit(req *gomemcached.MCRequest) error
@@ -94,6 +94,24 @@ type ClientIface interface {
 	ValidateKey(vb uint16, key string, context ...*ClientContext) (bool, error)
 
 	GetErrorMap(errMapVersion gomemcached.ErrorMapVersion) (map[string]interface{}, error)
+}
+
+// DataTransferInfo is used to track the data sent and received for the operations with ClientContext. It is optional and can be nil if not needed.
+type DataTransferInfo struct {
+	// DataSent denotes the amount of data sent in bytes.
+	DataSent int
+	// DataReceived denotes the amount of data received in bytes.
+	DataReceived int
+}
+
+func (d *DataTransferInfo) Clone() *DataTransferInfo {
+	if d == nil {
+		return nil
+	}
+	return &DataTransferInfo{
+		DataSent:     d.DataSent,
+		DataReceived: d.DataReceived,
+	}
 }
 
 type ClientContext struct {
@@ -125,10 +143,9 @@ type ClientContext struct {
 	// Include XATTRs in random document retrieval
 	IncludeXATTRs bool
 
-	// Calls a callback that sets the total number of bytes used, if set
-	// Not all client calls are supported, and dev should check to make sure this call is supported
-	// or build them as needed
-	BytesUsedCallback func(int)
+	// DataTransferInfo is used to track the data sent and received for the operations with this context.
+	// It is optional and can be nil if not needed.
+	DataTransferInfo *DataTransferInfo
 }
 
 func (this *ClientContext) Copy() *ClientContext {
@@ -139,6 +156,7 @@ func (this *ClientContext) Copy() *ClientContext {
 		DurabilityLevel:   this.DurabilityLevel,
 		DurabilityTimeout: this.DurabilityTimeout,
 		Compressed:        this.Compressed,
+		DataTransferInfo:  this.DataTransferInfo.Clone(),
 	}
 
 	rv.VbState = new(VbStateType)
@@ -1773,28 +1791,44 @@ func (c *Client) Stats(key string) ([]StatValue, error) {
 // Stats requests server-side stats.
 //
 // Use "" as the stat key for toplevel stats.
-func (c *Client) StatsFunc(key string, fn func(key, val []byte)) error {
+func (c *Client) StatsFunc(key string, fn func(key, val []byte), context ...*ClientContext) error {
 	req := &gomemcached.MCRequest{
 		Opcode: gomemcached.STAT,
 		Key:    []byte(key),
 		Opaque: 918494,
 	}
 
+	var dataSent int
+	var dataReceived int
+
 	err := c.Transmit(req)
 	if err != nil {
 		return err
 	}
 
+	dataSent += req.Size()
+
 	for {
-		res, _, err := getResponse(c.conn, c.hdrBuf)
+		res, bytesReceived, err := getResponse(c.conn, c.hdrBuf)
 		if err != nil {
 			return err
 		}
+
+		dataReceived += bytesReceived
+
 		if len(res.Key) == 0 {
 			break
 		}
 		fn(res.Key, res.Body)
 	}
+
+	for _, ctx := range context {
+		if ctx != nil && ctx.DataTransferInfo != nil {
+			ctx.DataTransferInfo.DataSent = dataSent
+			ctx.DataTransferInfo.DataReceived = dataReceived
+		}
+	}
+
 	return nil
 }
 
@@ -1803,7 +1837,8 @@ func (c *Client) StatsFunc(key string, fn func(key, val []byte)) error {
 //
 // Use "" as the stat key for toplevel stats.
 func (c *Client) StatsMap(key string, context ...*ClientContext) (map[string]string, error) {
-	var sizeUsed int
+	var dataSent int
+	var dataReceived int
 
 	rv := make(map[string]string)
 
@@ -1812,7 +1847,7 @@ func (c *Client) StatsMap(key string, context ...*ClientContext) (map[string]str
 		Key:    []byte(key),
 		Opaque: 918494,
 	}
-	sizeUsed += req.Size()
+	dataSent += req.Size()
 
 	err := c.Transmit(req)
 	if err != nil {
@@ -1824,7 +1859,7 @@ func (c *Client) StatsMap(key string, context ...*ClientContext) (map[string]str
 		if err != nil {
 			return rv, err
 		}
-		sizeUsed += bytesReceived
+		dataReceived += bytesReceived
 		k := string(res.Key)
 		if k == "" {
 			break
@@ -1832,16 +1867,21 @@ func (c *Client) StatsMap(key string, context ...*ClientContext) (map[string]str
 		rv[k] = string(res.Body)
 	}
 
-	if len(context) > 0 && context[0] != nil && context[0].BytesUsedCallback != nil {
-		context[0].BytesUsedCallback(sizeUsed)
+	for _, ctx := range context {
+		if ctx != nil && ctx.DataTransferInfo != nil {
+			ctx.DataTransferInfo.DataSent = dataSent
+			ctx.DataTransferInfo.DataReceived = dataReceived
+		}
 	}
+
 	return rv, nil
 }
 
 // instead of returning a new statsMap, simply populate passed in statsMap, which contains all the keys
 // for which stats needs to be retrieved
 func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]string, context ...*ClientContext) error {
-	var sizeUsed int
+	var dataSent int
+	var dataReceived int
 
 	// clear statsMap
 	for key, _ := range statsMap {
@@ -1853,7 +1893,7 @@ func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]strin
 		Key:    []byte(key),
 		Opaque: 918494,
 	}
-	sizeUsed += req.Size()
+	dataSent += req.Size()
 
 	err := c.Transmit(req)
 	if err != nil {
@@ -1865,7 +1905,7 @@ func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]strin
 		if err != nil {
 			return err
 		}
-		sizeUsed += bytesReceived
+		dataReceived += bytesReceived
 		k := string(res.Key)
 		if k == "" {
 			break
@@ -1875,24 +1915,24 @@ func (c *Client) StatsMapForSpecifiedStats(key string, statsMap map[string]strin
 		}
 	}
 
-	if len(context) > 0 && context[0] != nil && context[0].BytesUsedCallback != nil {
-		context[0].BytesUsedCallback(sizeUsed)
+	for _, ctx := range context {
+		if ctx != nil && ctx.DataTransferInfo != nil {
+			ctx.DataTransferInfo.DataSent = dataSent
+			ctx.DataTransferInfo.DataReceived = dataReceived
+		}
 	}
+
 	return nil
 }
 
 // UprGetFailoverLog for given list of vbuckets.
 func (mc *Client) UprGetFailoverLog(vb []uint16, context ...*ClientContext) (map[uint16]*FailoverLog, error) {
-	var totalSizeUsed int
+	var dataSent int
+	var dataReceived int
+
 	rq := &gomemcached.MCRequest{
 		Opcode: gomemcached.UPR_FAILOVERLOG,
 		Opaque: opaqueFailover,
-	}
-
-	if context != nil && len(context) > 0 && context[0] != nil && context[0].BytesUsedCallback != nil {
-		defer func() {
-			context[0].BytesUsedCallback(totalSizeUsed)
-		}()
 	}
 
 	failoverLogs := make(map[uint16]*FailoverLog)
@@ -1901,7 +1941,7 @@ func (mc *Client) UprGetFailoverLog(vb []uint16, context ...*ClientContext) (map
 		if err := mc.Transmit(rq); err != nil {
 			return nil, err
 		}
-		totalSizeUsed += rq.Size()
+		dataSent += rq.Size()
 
 		res, err := mc.Receive()
 		if err != nil {
@@ -1909,13 +1949,20 @@ func (mc *Client) UprGetFailoverLog(vb []uint16, context ...*ClientContext) (map
 		} else if res.Opcode != gomemcached.UPR_FAILOVERLOG || res.Status != gomemcached.SUCCESS {
 			return nil, fmt.Errorf("unexpected #opcode %v", res.Opcode)
 		}
-		totalSizeUsed += res.Size()
+		dataReceived += res.Size()
 
 		flog, err := parseFailoverLog(res.Body)
 		if err != nil {
 			return nil, fmt.Errorf("unable to parse failover logs for vb %d", vb)
 		}
 		failoverLogs[vBucket] = flog
+	}
+
+	for _, ctx := range context {
+		if ctx != nil && ctx.DataTransferInfo != nil {
+			ctx.DataTransferInfo.DataSent = dataSent
+			ctx.DataTransferInfo.DataReceived = dataReceived
+		}
 	}
 
 	return failoverLogs, nil
