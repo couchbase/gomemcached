@@ -3185,24 +3185,17 @@ func (_c *ClientIface_Stats_Call) RunAndReturn(run func(string) ([]memcached.Sta
 	return _c
 }
 
-// StatsFunc provides a mock function with given fields: key, fn, context
-func (_m *ClientIface) StatsFunc(key string, fn func([]byte, []byte), context ...*memcached.ClientContext) error {
-	_va := make([]interface{}, len(context))
-	for _i := range context {
-		_va[_i] = context[_i]
-	}
-	var _ca []interface{}
-	_ca = append(_ca, key, fn)
-	_ca = append(_ca, _va...)
-	ret := _m.Called(_ca...)
+// StatsFunc provides a mock function with given fields: key, fn
+func (_m *ClientIface) StatsFunc(key string, fn func([]byte, []byte)) error {
+	ret := _m.Called(key, fn)
 
 	if len(ret) == 0 {
 		panic("no return value specified for StatsFunc")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, func([]byte, []byte), ...*memcached.ClientContext) error); ok {
-		r0 = rf(key, fn, context...)
+	if rf, ok := ret.Get(0).(func(string, func([]byte, []byte)) error); ok {
+		r0 = rf(key, fn)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3218,21 +3211,13 @@ type ClientIface_StatsFunc_Call struct {
 // StatsFunc is a helper method to define mock.On call
 //   - key string
 //   - fn func([]byte , []byte)
-//   - context ...*memcached.ClientContext
-func (_e *ClientIface_Expecter) StatsFunc(key interface{}, fn interface{}, context ...interface{}) *ClientIface_StatsFunc_Call {
-	return &ClientIface_StatsFunc_Call{Call: _e.mock.On("StatsFunc",
-		append([]interface{}{key, fn}, context...)...)}
+func (_e *ClientIface_Expecter) StatsFunc(key interface{}, fn interface{}) *ClientIface_StatsFunc_Call {
+	return &ClientIface_StatsFunc_Call{Call: _e.mock.On("StatsFunc", key, fn)}
 }
 
-func (_c *ClientIface_StatsFunc_Call) Run(run func(key string, fn func([]byte, []byte), context ...*memcached.ClientContext)) *ClientIface_StatsFunc_Call {
+func (_c *ClientIface_StatsFunc_Call) Run(run func(key string, fn func([]byte, []byte))) *ClientIface_StatsFunc_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		variadicArgs := make([]*memcached.ClientContext, len(args)-2)
-		for i, a := range args[2:] {
-			if a != nil {
-				variadicArgs[i] = a.(*memcached.ClientContext)
-			}
-		}
-		run(args[0].(string), args[1].(func([]byte, []byte)), variadicArgs...)
+		run(args[0].(string), args[1].(func([]byte, []byte)))
 	})
 	return _c
 }
@@ -3242,7 +3227,7 @@ func (_c *ClientIface_StatsFunc_Call) Return(_a0 error) *ClientIface_StatsFunc_C
 	return _c
 }
 
-func (_c *ClientIface_StatsFunc_Call) RunAndReturn(run func(string, func([]byte, []byte), ...*memcached.ClientContext) error) *ClientIface_StatsFunc_Call {
+func (_c *ClientIface_StatsFunc_Call) RunAndReturn(run func(string, func([]byte, []byte)) error) *ClientIface_StatsFunc_Call {
 	_c.Call.Return(run)
 	return _c
 }
