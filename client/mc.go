@@ -146,6 +146,9 @@ type ClientContext struct {
 	// DataTransferInfo is used to track the data sent and received for the operations with this context.
 	// It is optional and can be nil if not needed.
 	DataTransferInfo *DataTransferInfo
+	// SeqScanSnapshotReqs specifies per-vbucket snapshot requirements for range scans.
+	// nil means no consistency requirement (unbounded).
+	SeqScanSnapshotReqs *SnapshotRequirements
 }
 
 func (this *ClientContext) Copy() *ClientContext {
@@ -165,6 +168,11 @@ func (this *ClientContext) Copy() *ClientContext {
 		*rv.VbState = *this.VbState
 	}
 
+	if this.SeqScanSnapshotReqs != nil {
+		cp := *this.SeqScanSnapshotReqs
+		rv.SeqScanSnapshotReqs = &cp
+	}
+
 	return rv
 }
 
@@ -177,6 +185,14 @@ const (
 	VbPending VbStateType = 0x03
 	VbDead    VbStateType = 0x04
 )
+
+// SnapshotRequirements specifies the snapshot consistency requirement for a KV range scan vbucket.
+type SnapshotRequirements struct {
+	Seqno       uint64 `json:"seqno"`
+	SeqnoExists bool   `json:"seqno_exists,omitempty"`
+	VbUUID      string `json:"vb_uuid,omitempty"`
+	TimeoutMs   uint64 `json:"timeout_ms,omitempty"`
+}
 
 const RandomScanSeed = 0x5eedbead
 
@@ -1382,6 +1398,9 @@ func (c *Client) CreateRangeScan(vb uint16, start []byte, excludeStart bool, end
 	m["range"] = r
 	if xattrs {
 		m["include_xattrs"] = true
+	}
+	if len(context) > 0 && context[0].SeqScanSnapshotReqs != nil {
+		m["snapshot_requirements"] = context[0].SeqScanSnapshotReqs
 	}
 	req.Body, _ = json.Marshal(m)
 
