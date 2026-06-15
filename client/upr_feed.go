@@ -472,6 +472,17 @@ func doUprOpen(mc *Client, name string, sequence uint32, features UprFeatures) e
 	return sendMcRequestSync(mc, rq)
 }
 
+// UprOpen opens a DCP producer connection on a raw Client that is not backed by
+// a UprFeed. It is required before issuing DCP control commands such as
+// UprGetFailoverLog: newer KV rejects those commands with EINVAL ("The command
+// can only be sent on a DCP connection") on a connection that has not completed
+// a UPR_OPEN handshake. After this call the connection is a DCP connection and
+// must not be returned to a general memcached op pool for reuse - close it when
+// done.
+func (mc *Client) UprOpen(name string, sequence uint32, features UprFeatures) error {
+	return doUprOpen(mc, name, sequence, features)
+}
+
 // Synchronously send a memcached request and wait for the response
 func sendMcRequestSync(mc *Client, req *gomemcached.MCRequest) error {
 	if err := mc.Transmit(req); err != nil {
