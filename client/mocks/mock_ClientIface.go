@@ -8,6 +8,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	net "net"
+
 	time "time"
 )
 
@@ -2947,6 +2949,52 @@ func (_c *ClientIface_SetDeadline_Call) Return() *ClientIface_SetDeadline_Call {
 
 func (_c *ClientIface_SetDeadline_Call) RunAndReturn(run func(time.Time)) *ClientIface_SetDeadline_Call {
 	_c.Run(run)
+	return _c
+}
+
+// SetKeepAliveConfig provides a mock function with given fields: cfg
+func (_m *ClientIface) SetKeepAliveConfig(cfg net.KeepAliveConfig) error {
+	ret := _m.Called(cfg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetKeepAliveConfig")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(net.KeepAliveConfig) error); ok {
+		r0 = rf(cfg)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ClientIface_SetKeepAliveConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetKeepAliveConfig'
+type ClientIface_SetKeepAliveConfig_Call struct {
+	*mock.Call
+}
+
+// SetKeepAliveConfig is a helper method to define mock.On call
+//   - cfg net.KeepAliveConfig
+func (_e *ClientIface_Expecter) SetKeepAliveConfig(cfg interface{}) *ClientIface_SetKeepAliveConfig_Call {
+	return &ClientIface_SetKeepAliveConfig_Call{Call: _e.mock.On("SetKeepAliveConfig", cfg)}
+}
+
+func (_c *ClientIface_SetKeepAliveConfig_Call) Run(run func(cfg net.KeepAliveConfig)) *ClientIface_SetKeepAliveConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(net.KeepAliveConfig))
+	})
+	return _c
+}
+
+func (_c *ClientIface_SetKeepAliveConfig_Call) Return(_a0 error) *ClientIface_SetKeepAliveConfig_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ClientIface_SetKeepAliveConfig_Call) RunAndReturn(run func(net.KeepAliveConfig) error) *ClientIface_SetKeepAliveConfig_Call {
+	_c.Call.Return(run)
 	return _c
 }
 

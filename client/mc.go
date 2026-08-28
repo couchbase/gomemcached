@@ -61,6 +61,7 @@ type ClientIface interface {
 	Send(req *gomemcached.MCRequest) (rv *gomemcached.MCResponse, err error)
 	Set(vb uint16, key string, flags int, exp int, body []byte, context ...*ClientContext) (*gomemcached.MCResponse, error)
 	SetKeepAliveOptions(interval time.Duration)
+	SetKeepAliveConfig(cfg net.KeepAliveConfig) error
 	SetReadDeadline(t time.Time)
 	SetDeadline(t time.Time)
 	SetReplica(r bool)
@@ -368,12 +369,42 @@ func SetDefaultDialTimeout(dial time.Duration) {
 	DefaultDialTimeout = dial
 }
 
+// keepAliveTCPConn digs the underlying *net.TCPConn out of the transport, unwrapping TLS if
+// present. Returns nil if the transport isn't TCP. Without the TLS unwrap a plain
+// c.conn.(*net.TCPConn) assertion fails on every connection made by ConnectTLS, silently
+// leaving those connections with no keepalive at all.
+func (c *Client) keepAliveTCPConn() *net.TCPConn {
+	nc, ok := c.conn.(net.Conn)
+	if !ok {
+		return nil
+	}
+	if tc, isTLS := nc.(*tls.Conn); isTLS {
+		nc = tc.NetConn()
+	}
+	tcpConn, _ := nc.(*net.TCPConn)
+	return tcpConn
+}
+
+// SetKeepAliveOptions sets the keepalive idle threshold (TCP_KEEPIDLE) only, leaving the probe
+// interval and count at their OS defaults. Worst-case detection of a black-holed peer is
+// therefore interval + OS_keepintvl*OS_keepcnt, which on Linux and macOS is ~10 minutes on top
+// of whatever is passed here. Prefer SetKeepAliveConfig when the detection time matters.
 func (c *Client) SetKeepAliveOptions(interval time.Duration) {
-	tcpConn, ok := c.conn.(*net.TCPConn)
-	if ok {
+	if tcpConn := c.keepAliveTCPConn(); tcpConn != nil {
 		tcpConn.SetKeepAlive(true)
 		tcpConn.SetKeepAlivePeriod(interval)
 	}
+}
+
+// SetKeepAliveConfig sets idle time, probe interval and probe count together. Unlike
+// SetKeepAliveOptions it bounds worst-case dead-peer detection to Idle + Interval*Count rather
+// than leaving the probe schedule at OS defaults. A no-op on non-TCP transports.
+func (c *Client) SetKeepAliveConfig(cfg net.KeepAliveConfig) error {
+	tcpConn := c.keepAliveTCPConn()
+	if tcpConn == nil {
+		return nil
+	}
+	return tcpConn.SetKeepAliveConfig(cfg)
 }
 
 func (c *Client) SetReadDeadline(t time.Time) {
