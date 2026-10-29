@@ -88,6 +88,17 @@ func TestHealthy(t *testing.T) {
 	}
 }
 
+func TestValidateKeySendError(t *testing.T) {
+	var tr tracked
+	c, err := Wrap(&tr)
+	must(err)
+
+	ok, err := c.ValidateKey(0, "k")
+	if ok || err == nil {
+		t.Errorf("Expected send error, got %v, %v", ok, err)
+	}
+}
+
 func TestTransmitReq(t *testing.T) {
 	b := bytes.NewBuffer([]byte{})
 	buf := bufio.NewWriter(b)

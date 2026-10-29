@@ -1437,6 +1437,9 @@ func (c *Client) ValidateKey(vb uint16, key string, context ...*ClientContext) (
 		return false, err
 	}
 	resp, err := c.Send(req)
+	if resp == nil {
+		return false, err
+	}
 	if resp.Status == gomemcached.KEY_EEXISTS {
 		return true, nil
 	} else if resp.Status == gomemcached.KEY_ENOENT {
