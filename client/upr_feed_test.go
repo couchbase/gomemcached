@@ -7,8 +7,11 @@ import (
 	"fmt"
 	"github.com/couchbase/gomemcached"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"io/ioutil"
+	"net"
 	"testing"
+	"time"
 )
 
 func setupBoilerPlate() (*vbStreamNegotiator, *UprFeed) {
@@ -364,4 +367,134 @@ func TestNonDefaultScopeMutation(t *testing.T) {
 	assert.Equal(uint64(9), event.CollectionId)
 
 	fmt.Println("============== Test case TestNonDefaultScopeMutation =================")
+}
+
+const closeStreamTestVb = uint16(5)
+const closeStreamTestOpaqueMSB = uint16(1)
+
+// startCloseStreamTestFeed starts a feed with SendStreamEndOnClose on and an
+// active stream for closeStreamTestVb. Packets put on the returned channel are
+// written in order by the producer side, without blocking the test if the feed
+// stops reading.
+func startCloseStreamTestFeed(t *testing.T) (*UprFeed, chan<- []byte) {
+	producer, consumer := net.Pipe()
+	go io.Copy(io.Discard, producer) // drain the client's CloseStream request
+
+	mc, err := Wrap(consumer)
+	assert.Nil(t, err)
+	feed, err := mc.NewUprFeedWithConfig(true /*ackByClient*/)
+	assert.Nil(t, err)
+	feed.activatedFeatures.SendStreamEndOnClose = true
+	feed.vbstreams[closeStreamTestVb] = &UprStream{Vbucket: closeStreamTestVb, EndSeq: 10, connected: true}
+	assert.Nil(t, feed.StartFeedWithConfig(10))
+
+	pkts := make(chan []byte, 16)
+	go func() {
+		for pkt := range pkts {
+			if _, err := producer.Write(pkt); err != nil {
+				return
+			}
+		}
+	}()
+	return feed, pkts
+}
+
+func sendTestMutation(t *testing.T, producer chan<- []byte, seqno uint64) {
+	extras := make([]byte, uprMutationExtraLen)
+	binary.BigEndian.PutUint64(extras[:8], seqno)
+	producer <- (&gomemcached.MCRequest{
+		Opcode:  gomemcached.UPR_MUTATION,
+		VBucket: closeStreamTestVb,
+		Opaque:  composeOpaque(closeStreamTestVb, closeStreamTestOpaqueMSB),
+		Extras:  extras,
+		Key:     []byte("k"),
+		Body:    []byte("v"),
+	}).Bytes()
+}
+
+func sendTestCloseStreamResponse(t *testing.T, producer chan<- []byte, status gomemcached.Status) {
+	producer <- (&gomemcached.MCResponse{
+		Opcode: gomemcached.UPR_CLOSESTREAM,
+		Status: status,
+		Opaque: composeOpaque(closeStreamTestVb, closeStreamTestOpaqueMSB),
+	}).Bytes()
+}
+
+func sendTestStreamEnd(t *testing.T, producer chan<- []byte) {
+	producer <- (&gomemcached.MCRequest{
+		Opcode:  gomemcached.UPR_STREAMEND,
+		VBucket: closeStreamTestVb,
+		Opaque:  composeOpaque(closeStreamTestVb, closeStreamTestOpaqueMSB),
+		Extras:  make([]byte, 4),
+	}).Bytes()
+}
+
+func nextTestEvent(t *testing.T, feed *UprFeed) *UprEvent {
+	select {
+	case ev, ok := <-feed.C:
+		if !ok {
+			t.Fatalf("feed closed unexpectedly")
+		}
+		return ev
+	case <-time.After(5 * time.Second):
+		t.Fatalf("timed out waiting for event")
+	}
+	return nil
+}
+
+// MB-75387: KV rejects the close. With KEY_ENOENT it had already ended the stream
+// and still has items queued; with any other error the stream was never touched
+// and keeps running. Either way the feed must keep the stream, deliver the
+// remaining items and KV's own StreamEnd, and stay open.
+func TestCloseStreamRejectedWaitsForStreamEnd(t *testing.T) {
+	for _, status := range []gomemcached.Status{gomemcached.KEY_ENOENT, gomemcached.EINVAL} {
+		t.Run(status.String(), func(t *testing.T) {
+			testCloseStreamRejectedWaitsForStreamEnd(t, status)
+		})
+	}
+}
+
+func testCloseStreamRejectedWaitsForStreamEnd(t *testing.T, status gomemcached.Status) {
+	assert := assert.New(t)
+	feed, producer := startCloseStreamTestFeed(t)
+	defer feed.Close()
+
+	sendTestMutation(t, producer, 11)
+	ev := nextTestEvent(t, feed)
+	assert.Equal(gomemcached.UPR_MUTATION, ev.Opcode)
+	assert.Nil(feed.CloseStream(closeStreamTestVb, closeStreamTestOpaqueMSB))
+
+	sendTestCloseStreamResponse(t, producer, status)
+	sendTestMutation(t, producer, 12)
+	ev = nextTestEvent(t, feed)
+	assert.Equal(gomemcached.UPR_MUTATION, ev.Opcode)
+	assert.Equal(uint64(12), ev.Seqno)
+
+	sendTestStreamEnd(t, producer)
+	ev = nextTestEvent(t, feed)
+	assert.Equal(gomemcached.UPR_STREAMEND, ev.Opcode)
+	assert.Equal(closeStreamTestVb, ev.VBucket)
+
+	feed.muVbstreams.RLock()
+	assert.Nil(feed.vbstreams[closeStreamTestVb])
+	feed.muVbstreams.RUnlock()
+	assert.False(feed.Closed())
+}
+
+// An accepted close still simulates StreamEnd right away, as before.
+func TestCloseStreamAcceptedSimulatesStreamEnd(t *testing.T) {
+	assert := assert.New(t)
+	feed, producer := startCloseStreamTestFeed(t)
+	defer feed.Close()
+
+	assert.Nil(feed.CloseStream(closeStreamTestVb, closeStreamTestOpaqueMSB))
+	sendTestCloseStreamResponse(t, producer, gomemcached.SUCCESS)
+	ev := nextTestEvent(t, feed)
+	assert.Equal(gomemcached.UPR_STREAMEND, ev.Opcode)
+
+	// KV's StreamEnd that follows an accepted close is still passed through.
+	sendTestStreamEnd(t, producer)
+	ev = nextTestEvent(t, feed)
+	assert.Equal(gomemcached.UPR_STREAMEND, ev.Opcode)
+	assert.False(feed.Closed())
 }

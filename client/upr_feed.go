@@ -1044,12 +1044,22 @@ func (feed *UprFeed) runFeed(ch chan *UprEvent) {
 					logging.Infof("Stream not found for vb %d: %#v", vb, pkt)
 					return
 				}
-				event = makeUprEvent(pkt, stream, bytes)
-				event.Opcode = gomemcached.UPR_STREAMEND // opcode re-write !!
-				logging.Infof("Stream Closed for vb %d StreamEnd simulated", vb)
+				if res.Status != gomemcached.SUCCESS && stream != nil && feed.activatedFeatures.SendStreamEndOnClose {
+					// KV rejected the close, so its stream is still in its streams map: either
+					// already ended (KEY_ENOENT) with items and STREAM_END still queued, or
+					// never touched (other errors) and still running. With
+					// send_stream_end_on_client_close_stream, KV erases the stream only after
+					// it has sent STREAM_END. Keep the stream: its remaining items are
+					// delivered as usual and KV's own STREAM_END cleans it up.
+					logging.Infof("CloseStream for vb %d rejected (%v), waiting for StreamEnd", vb, res.Status)
+				} else {
+					event = makeUprEvent(pkt, stream, bytes)
+					event.Opcode = gomemcached.UPR_STREAMEND // opcode re-write !!
+					logging.Infof("Stream Closed for vb %d StreamEnd simulated", vb)
 
-				feed.negotiator.deleteStreamFromMap(vb, appOpaque)
-				feed.cleanUpVbStream(vb)
+					feed.negotiator.deleteStreamFromMap(vb, appOpaque)
+					feed.cleanUpVbStream(vb)
+				}
 
 			case gomemcached.UPR_ADDSTREAM:
 				logging.Infof("Opcode %v not implemented", pkt.Opcode)
