@@ -194,3 +194,97 @@ func assertKeepAlive(t *testing.T, conn *net.TCPConn, cfg net.KeepAliveConfig) {
 		t.Fatalf("getsockopt: %v", ctrlErr)
 	}
 }
+
+// TestSetKeepAliveConfigRecorded checks that the last applied configuration is recorded, so that
+// connection pools that apply the same configuration on every checkout don't pay three or four
+// setsockopt calls each time, and that SetKeepAliveOptions, which changes the socket outside that
+// record, invalidates it.
+func TestSetKeepAliveConfigRecorded(t *testing.T) {
+	active := net.KeepAliveConfig{Enable: true, Idle: 5 * time.Second, Interval: 2 * time.Second, Count: 3}
+	pooled := active
+	pooled.Idle = 30 * time.Minute
+
+	for _, useTLS := range []bool{false, true} {
+		name := "plaintext"
+		if useTLS {
+			name = "tls"
+		}
+		t.Run(name, func(t *testing.T) {
+			client, cleanup := dialLoopback(t, useTLS)
+			defer cleanup()
+
+			for _, cfg := range []net.KeepAliveConfig{active, active, pooled, active} {
+				if err := client.SetKeepAliveConfig(cfg); err != nil {
+					t.Fatalf("SetKeepAliveConfig(%v): %v", cfg, err)
+				}
+				if !client.keepAliveSet || client.keepAlive != cfg {
+					t.Fatalf("recorded %v (set %v), expected %v", client.keepAlive, client.keepAliveSet, cfg)
+				}
+			}
+
+			client.SetKeepAliveOptions(time.Minute)
+			if client.keepAliveSet {
+				t.Fatalf("SetKeepAliveOptions left %v recorded", client.keepAlive)
+			}
+			if err := client.SetKeepAliveConfig(active); err != nil || !client.keepAliveSet || client.keepAlive != active {
+				t.Fatalf("re-apply after SetKeepAliveOptions: err %v, recorded %v", err, client.keepAlive)
+			}
+			// SetKeepAliveOptions left TCP_KEEPIDLE at 60s: reading back the active values shows the
+			// re-apply really reached the socket rather than only updating the record
+			if runtime.GOOS == "linux" {
+				assertKeepAlive(t, client.keepAliveTCPConn(), active)
+			}
+		})
+	}
+}
+
+// A non-TCP transport has nothing to apply, so nothing is recorded.
+func TestSetKeepAliveConfigNonTCPNotRecorded(t *testing.T) {
+	a, b := net.Pipe()
+	defer a.Close()
+	defer b.Close()
+
+	client, err := Wrap(a)
+	if err != nil {
+		t.Fatalf("Wrap: %v", err)
+	}
+	if err := client.SetKeepAliveConfig(net.KeepAliveConfig{Enable: true, Idle: 5 * time.Second}); err != nil {
+		t.Fatalf("SetKeepAliveConfig: %v", err)
+	}
+	if client.keepAliveSet {
+		t.Errorf("non-TCP transport recorded %v", client.keepAlive)
+	}
+}
+
+// The zero configuration is a real request (Enable false: disable keepalive), not "nothing
+// recorded", so it must reach the socket even on a fresh Client. net.Dial enables keepalive by
+// default, so a skipped call would leave SO_KEEPALIVE on.
+func TestSetKeepAliveConfigZeroDisables(t *testing.T) {
+	client, cleanup := dialLoopback(t, false)
+	defer cleanup()
+
+	if err := client.SetKeepAliveConfig(net.KeepAliveConfig{}); err != nil {
+		t.Fatalf("SetKeepAliveConfig: %v", err)
+	}
+	if !client.keepAliveSet {
+		t.Fatal("zero configuration not recorded")
+	}
+
+	raw, err := client.keepAliveTCPConn().SyscallConn()
+	if err != nil {
+		t.Fatalf("SyscallConn: %v", err)
+	}
+	var got int
+	var gerr error
+	if err := raw.Control(func(fd uintptr) {
+		got, gerr = syscall.GetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_KEEPALIVE)
+	}); err != nil {
+		t.Fatalf("Control: %v", err)
+	}
+	if gerr != nil {
+		t.Fatalf("getsockopt: %v", gerr)
+	}
+	if got != 0 {
+		t.Errorf("SO_KEEPALIVE = %d after applying the zero configuration, expected 0", got)
+	}
+}
