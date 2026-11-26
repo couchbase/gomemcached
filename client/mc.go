@@ -320,6 +320,13 @@ type Client struct {
 	objPoolEnabled uint32
 	datapoolGetter func(uint64) ([]byte, error)
 	datapoolDone   func([]byte)
+
+	// last keepalive configuration successfully applied, so that repeated
+	// calls with the same configuration don't cost a setsockopt each;
+	// keepAliveSet is false when nothing is recorded, since the zero
+	// configuration is itself a valid request (disable keepalive)
+	keepAlive    net.KeepAliveConfig
+	keepAliveSet bool
 }
 
 var (
@@ -391,6 +398,7 @@ func (c *Client) keepAliveTCPConn() *net.TCPConn {
 // of whatever is passed here. Prefer SetKeepAliveConfig when the detection time matters.
 func (c *Client) SetKeepAliveOptions(interval time.Duration) {
 	if tcpConn := c.keepAliveTCPConn(); tcpConn != nil {
+		c.keepAliveSet = false // no longer matches what SetKeepAliveConfig last applied
 		tcpConn.SetKeepAlive(true)
 		tcpConn.SetKeepAlivePeriod(interval)
 	}
@@ -399,12 +407,24 @@ func (c *Client) SetKeepAliveOptions(interval time.Duration) {
 // SetKeepAliveConfig sets idle time, probe interval and probe count together. Unlike
 // SetKeepAliveOptions it bounds worst-case dead-peer detection to Idle + Interval*Count rather
 // than leaving the probe schedule at OS defaults. A no-op on non-TCP transports.
+// Not safe for concurrent use: the last applied configuration is recorded on the Client without
+// locking, so the caller must own the Client (e.g. have it checked out of a pool). A call with
+// the configuration last applied is skipped, so keepalive changes made directly on the socket
+// obtained through Conn() or Hijack() are not seen and may not be overwritten.
 func (c *Client) SetKeepAliveConfig(cfg net.KeepAliveConfig) error {
+	if c.keepAliveSet && cfg == c.keepAlive {
+		return nil
+	}
 	tcpConn := c.keepAliveTCPConn()
 	if tcpConn == nil {
 		return nil
 	}
-	return tcpConn.SetKeepAliveConfig(cfg)
+	if err := tcpConn.SetKeepAliveConfig(cfg); err != nil {
+		c.keepAliveSet = false
+		return err
+	}
+	c.keepAlive, c.keepAliveSet = cfg, true
+	return nil
 }
 
 func (c *Client) SetReadDeadline(t time.Time) {
